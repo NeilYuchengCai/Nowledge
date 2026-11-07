@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
-<title>今课 Nowledge · 2.5</title>
+<title>今课 Nowledge · V3</title>
 <style>
 /* ============================================================
    设计令牌 Design Tokens
@@ -87,11 +87,6 @@ ul{padding:0;list-style:none;}
 img,svg{display:block;}
 ::selection{background:var(--accent-soft);color:var(--accent-ink);}
 
-/* 无障碍：仅用于屏幕阅读器 */
-.sr-only{
-  position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
-  clip:rect(0,0,0,0);white-space:nowrap;border:0;
-}
 /* Skip link: visible on focus for keyboard users */
 .skip-link{
   position:absolute;top:-40px;left:0;background:var(--accent);color:var(--bg);
@@ -258,6 +253,33 @@ a:focus-visible,button:focus-visible,[tabindex]:focus-visible,input:focus-visibl
   font-weight:650;
   color:var(--ink);
 }
+
+/* 布局说明提示 */
+.layout-hint{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  padding:4px 10px;
+  background:var(--bg-elevated);
+  border:1px solid var(--border);
+  border-radius:var(--radius-sm);
+  font-size:12px;
+  color:var(--muted);
+  transition:opacity var(--dur-fast) var(--ease);
+}
+.layout-hint__icon{
+  width:14px;height:14px;
+  opacity:.7;
+}
+.layout-hint__text{
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  max-width:280px;
+}
+@media (prefers-reduced-motion:reduce){
+  .layout-hint{transition:none!important;}
+}
 .stat--accent .stat__value{color:var(--accent);}
 .progress-ring{width:16px;height:16px;flex-shrink:0;}
 .progress-ring circle{transition:stroke-dashoffset var(--dur-med) var(--ease);}
@@ -290,8 +312,6 @@ a:focus-visible,button:focus-visible,[tabindex]:focus-visible,input:focus-visibl
 .btn svg{width:14px;height:14px;}
 .btn--primary{background:var(--accent);border-color:var(--accent);color:#fff;}
 .btn--primary:hover{background:var(--accent-strong);border-color:var(--accent-strong);}
-.btn--ghost{background:transparent;border-color:transparent;}
-.btn--ghost:hover{background:var(--bg-sunken);}
 .btn--danger{color:var(--danger);}
 .btn--danger:hover{background:var(--danger-soft);border-color:var(--danger-soft);}
 .btn[disabled]{opacity:.42;pointer-events:none;}
@@ -310,7 +330,6 @@ a:focus-visible,button:focus-visible,[tabindex]:focus-visible,input:focus-visibl
 }
 .note-field__input::placeholder{color:var(--muted-2);}
 .note-field__input:focus{outline:none;}
-.note-field__label{font-size:11px;color:var(--muted-2);letter-spacing:.02em;}
 
 /* ---------- Date navigator (history browsing) ---------- */
 .datebar{
@@ -361,8 +380,13 @@ a:focus-visible,button:focus-visible,[tabindex]:focus-visible,input:focus-visibl
   transition:border-color var(--dur-fast) var(--ease),background var(--dur-fast) var(--ease),opacity var(--dur-med) var(--ease);
   position:relative;
 }
-.card.is-clickable{cursor:pointer;}
-.card.is-clickable:hover{border-color:var(--border-strong);}
+.card.is-clickable{cursor:pointer;will-change:transform;}
+.card.is-clickable:hover{
+  transform:translateY(-2px) scale(1.005);
+  border-color:color-mix(in srgb,var(--accent) 25%,var(--border-strong));
+  box-shadow:var(--shadow-card-hover), 0 0 0 4px color-mix(in srgb,var(--accent) 8%,transparent);
+}
+.card.is-clickable:hover::before{opacity:.7;background:linear-gradient(90deg, transparent, color-mix(in srgb,var(--accent) 50%, transparent), transparent);}
 .card.is-hidden-subject{display:none;}
 .card__head{
   display:flex;
@@ -411,6 +435,68 @@ a:focus-visible,button:focus-visible,[tabindex]:focus-visible,input:focus-visibl
   min-height:18px;
 }
 .card__meta{font-size:11px;color:var(--muted-2);font-family:var(--font-num);}
+/* 多子项作业（拆分展示） */
+.card.is-multi .card__body{ display:none; }
+/* 关键：给拆分卡设内部滚动上限，避免其“内容过高”把全局自适应字号压小；子项字号因此保持与科目名同大，溢出在卡内滚动 */
+.card.is-multi{ max-height:65vh; overflow:auto; overscroll-behavior:contain; }
+.card__count{
+  font-size:11px;font-family:var(--font-num);font-weight:600;
+  color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,transparent);
+  border-radius:999px;padding:1px 7px;line-height:1.6;flex-shrink:0;
+}
+.card__items{ display:flex;flex-direction:column;gap:3px;margin-top:2px; }
+.card__item{
+  display:flex;align-items:flex-start;gap:8px;
+  padding:5px 8px;border-radius:var(--radius-sm,8px);
+  background:var(--bg-sunken);border:1px solid transparent;
+  cursor:pointer;transition:background var(--dur-fast) var(--ease),border-color var(--dur-fast) var(--ease);
+}
+.card__item:hover{ border-color:color-mix(in srgb,var(--accent) 22%,var(--border)); }
+.card__item.is-done{ opacity:.62; }
+.card__item.is-done .card__item-text{ text-decoration:line-through;text-decoration-color:var(--muted-2); }
+.card__item-check{
+  appearance:none;-webkit-appearance:none;flex-shrink:0;
+  width:16px;height:16px;margin-top:1px;border-radius:5px;
+  border:1.5px solid var(--border-strong);background:var(--bg-elevated);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;
+  transition:all var(--dur-fast) var(--ease);
+}
+.card__item-check:checked{ background:var(--success);border-color:var(--success); }
+.card__item-check:checked::after{ content:"";width:9px;height:5px;border-left:2px solid #fff;border-bottom:2px solid #fff;transform:rotate(-45deg) translateY(-1px); }
+.card__item-index{
+  flex-shrink:0;font-size:max(20px,var(--card-title-size,20px));font-family:var(--font-num);font-weight:700;
+  color:var(--muted-2);min-width:16px;text-align:center;line-height:1.5;
+}
+.card__item-text{ font-size:max(20px,var(--card-title-size,20px));line-height:1.5;color:var(--ink-soft);white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word; }
+.card__item-empty{ color:var(--muted-2);font-style:normal; }
+/* 编辑弹窗：拆分控制 + 多子项编辑器 */
+.split-control{ display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px;padding:8px 12px;background:var(--bg-sunken);border-radius:var(--radius-sm,8px); }
+.split-control__label{ font-size:13px;color:var(--ink-soft);font-weight:550; }
+.stepper{ display:flex;align-items:center;gap:10px; }
+.stepper__btn{
+  width:28px;height:28px;border-radius:8px;border:1px solid var(--border-strong);
+  background:var(--bg-elevated);color:var(--ink);font-size:18px;line-height:1;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:all var(--dur-fast) var(--ease);
+}
+.stepper__btn:hover{ border-color:var(--accent);color:var(--accent); }
+.stepper__value{ font-size:15px;font-weight:700;font-family:var(--font-num);min-width:22px;text-align:center; }
+.items-editor{ display:flex;flex-direction:column;gap:10px;max-height:60vh;overflow:auto;padding-right:2px; }
+.item-edit{ border:1px solid var(--border);border-radius:var(--radius-sm,8px);padding:10px;background:var(--bg-elevated); }
+.item-edit.is-done{ opacity:.7; }
+.item-edit__head{ display:flex;align-items:center;justify-content:space-between;margin-bottom:6px; }
+.item-edit__no{ font-size:12px;font-weight:700;font-family:var(--font-num);color:var(--accent); }
+.item-edit__done{ display:flex;align-items:center;gap:5px;font-size:12px;color:var(--muted);cursor:pointer; }
+.item-edit__done input{ width:15px;height:15px;accent-color:var(--success);cursor:pointer; }
+.item-edit__input{ width:100%;min-height:42px;font-size:15px;line-height:1.5; }
+/* 教室模式多子项 */
+.classroom-card__items{ display:flex;flex-direction:column;gap:3px;margin-top:4px; }
+.classroom-item{ display:flex;align-items:flex-start;gap:8px;font-size:max(15px,var(--class-title,15px));line-height:1.4;color:var(--ink-soft); }
+.classroom-item.is-done{ opacity:.6; }
+.classroom-item.is-done .classroom-item__text{ text-decoration:line-through;text-decoration-color:var(--muted-2); }
+.classroom-item__no{ flex-shrink:0;font-size:1em;font-family:var(--font-num);font-weight:700;color:var(--muted-2);min-width:16px;text-align:center; }
+.classroom-item__text{ white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word; }
+.classroom-item__empty{ color:var(--muted-2); }
 .card__menu-btn{
   opacity:0;
   width:26px;height:26px;
@@ -551,7 +637,7 @@ a:focus-visible,button:focus-visible,[tabindex]:focus-visible,input:focus-visibl
 .field__label{
   display:block;font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:500;
 }
-.field__input,.field__textarea,.field__select{
+.field__input,.field__textarea{
   width:100%;
   padding:9px 11px;
   border:1px solid var(--border);
@@ -561,14 +647,12 @@ a:focus-visible,button:focus-visible,[tabindex]:focus-visible,input:focus-visibl
   color:var(--ink);
   transition:border-color var(--dur-fast) var(--ease);
 }
-.field__input:focus,.field__textarea:focus,.field__select:focus{border-color:var(--accent);outline:none;}
+.field__input:focus,.field__textarea:focus{border-color:var(--accent);outline:none;}
 .field__textarea{
   resize:vertical;min-height:140px;line-height:1.6;font-size:14.5px;
   overflow-y:auto;
 }
 .field__hint{font-size:11.5px;color:var(--muted-2);margin-top:5px;}
-.field__save-state{font-size:11.5px;color:var(--success);margin-top:5px;height:14px;opacity:0;transition:opacity var(--dur-fast) var(--ease);}
-.field__save-state.is-visible{opacity:1;}
 .field-row{display:flex;gap:10px;}
 .field-row .field{flex:1;}
 
@@ -578,7 +662,6 @@ a:focus-visible,button:focus-visible,[tabindex]:focus-visible,input:focus-visibl
   gap:12px;
 }
 .toggle-row__label{font-size:13.5px;color:var(--ink-soft);}
-.toggle-row__desc{font-size:11.5px;color:var(--muted-2);margin-top:2px;}
 .switch{
   width:38px;height:22px;border-radius:99px;
   background:var(--border-strong);
@@ -805,8 +888,6 @@ body{
   box-shadow:0 6px 24px rgba(0,0,0,.025);
   backdrop-filter:blur(12px);
 }
-.progress{height:5px;border-radius:999px;background:var(--bg-sunken);overflow:hidden;}
-.progress__bar{border-radius:999px;transition:width .45s cubic-bezier(.22,1,.36,1);}
 .subject-grid{
   align-content:start;
   perspective:1000px;
@@ -821,10 +902,10 @@ body{
   isolation:isolate;
   transform:translateZ(0);
   transition:
-    transform .22s cubic-bezier(.22,1,.36,1),
-    box-shadow .22s cubic-bezier(.22,1,.36,1),
-    border-color .18s ease,
-    background .18s ease,
+    transform .25s cubic-bezier(.4,0,.2,1),
+    box-shadow .25s cubic-bezier(.4,0,.2,1),
+    border-color .2s ease,
+    background .2s ease,
     opacity .25s ease;
 }
 .card::before{
@@ -832,16 +913,10 @@ body{
   position:absolute;
   inset:0 0 auto;
   height:2px;
-  background:linear-gradient(90deg, transparent, color-mix(in srgb,var(--accent) 72%, transparent), transparent);
+  background:linear-gradient(90deg, transparent, color-mix(in srgb,var(--accent) 50%, transparent), transparent);
   opacity:0;
-  transition:opacity .2s ease;
+  transition:opacity .4s cubic-bezier(.25,.1,.25,1);
 }
-.card.is-clickable:hover{
-  transform:translateY(-2px);
-  border-color:var(--border-strong);
-  box-shadow:var(--shadow-card-hover);
-}
-.card.is-clickable:hover::before{opacity:1;}
 .card:focus-visible{
   outline:none;
   box-shadow:var(--shadow-card-hover),var(--ring);
@@ -884,7 +959,16 @@ body{
   overscroll-behavior:contain;
 }
 @media (prefers-reduced-motion:reduce){
-  .card,.progress__bar{transition:none!important;}
+  .card{transition:none!important;}
+}
+/* 布局探测期：禁用 CSS 变量过渡，避免测量闪烁 */
+.subject-grid[data-probing="true"]{
+  --_layout-trans: none !important;
+}
+.subject-grid[data-probing="true"] .card{
+  transition: border-color var(--dur-fast) var(--ease),
+              background var(--dur-fast) var(--ease),
+              opacity var(--dur-med) var(--ease) !important;
 }
 :root[data-theme="dark"] body{
   background:
@@ -972,6 +1056,8 @@ body{
 .app[data-mode="classroom"] .header__right .icon-btn{
   display:flex;
 }
+/* 分享图功能仅编辑模式可用，教室模式隐藏 */
+.app[data-mode="classroom"] #shareImgBtn{ display:none !important; }
 .app[data-mode="classroom"] .brand-mark{
   font-size:12px;
 }
@@ -1117,7 +1203,7 @@ body{
 .classroom-foot{flex:0 0 auto;display:flex;justify-content:space-between;padding-top:7px;color:var(--muted-2);font-size:10px;}
 @media(max-width:700px){.classroom-shell{padding:14px 14px 8px}.classroom-live{display:none}.classroom-head{align-items:flex-start}.classroom-date{font-size:27px}.classroom-quote{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}}
 
-/* ================= 2.5 Brand lockup ================= */
+/* ================= V3 Brand lockup ================= */
 /* 中英品牌组合：中文为主名，英文为副标，形成主次节奏 */
 .brand-row{
   display:flex;
@@ -1205,6 +1291,42 @@ button,a,[role="button"]{touch-action:manipulation;-webkit-tap-highlight-color:r
   .icon-btn{min-width:36px;min-height:36px;}
   .focus-btn{min-width:40px;min-height:40px;}
 }
+
+/* ============ AI 设置与助手 ============ */
+.ai-section{ margin-top:6px; }
+.ai-empty{ color:var(--muted); font-size:13px; padding:8px 0; }
+.ai-list{ display:flex; flex-direction:column; gap:10px; }
+.ai-card{ border:1px solid var(--border); border-radius:12px; padding:12px 14px; background:var(--bg-sunken); }
+.ai-card.is-active{ border-color:var(--accent); background:var(--accent-soft); }
+.ai-card__top{ display:flex; align-items:center; gap:8px; }
+.ai-card__name{ font-weight:700; font-size:15px; color:var(--ink); }
+.ai-card__badge{ font-size:11px; color:#fff; background:var(--accent); border-radius:999px; padding:2px 8px; }
+.ai-card__meta{ font-size:12px; color:var(--muted-2); margin-top:4px; word-break:break-all; }
+.ai-card__actions{ display:flex; gap:8px; margin-top:10px; flex-wrap:wrap; }
+.ai-form{ border:1px solid var(--border); border-radius:12px; padding:14px; display:flex; flex-direction:column; gap:10px; background:var(--bg-elevated); margin-top:10px; }
+.ai-form .field__label{ font-size:13px; }
+.ai-form .field__input{ width:100%; }
+.ai-hint{ font-size:12px; color:var(--muted-2); line-height:1.6; }
+.ai-status-line{ font-size:12.5px; color:var(--accent); min-height:18px; }
+.ai-status-line.is-error{ color:var(--danger); }
+.ai-status-line.is-ok{ color:var(--success); }
+
+/* 编辑弹窗内 AI 助手 */
+.ai-assist{ border:1px solid var(--border); border-radius:12px; margin-bottom:12px; overflow:hidden; background:var(--bg-sunken); }
+.ai-assist.is-disabled{ opacity:.92; }
+.ai-assist__head{ display:flex; align-items:center; justify-content:space-between; padding:10px 12px; }
+.ai-assist__title{ font-weight:700; font-size:14px; color:var(--ink); }
+.ai-assist__toggle{ font-size:12.5px; color:var(--accent); background:none; border:none; cursor:pointer; padding:4px 6px; border-radius:6px; }
+.ai-assist__toggle:hover{ background:var(--accent-soft); }
+.ai-assist__body{ padding:0 12px 12px; display:flex; flex-direction:column; gap:10px; }
+.ai-assist__input{ min-height:64px; width:100%; resize:vertical; }
+.ai-assist__btns{ display:flex; gap:8px; flex-wrap:wrap; }
+.ai-assist__status{ font-size:12.5px; color:var(--muted); min-height:18px; white-space:pre-wrap; word-break:break-word; max-height:150px; overflow:auto; }
+.ai-assist__status.is-error{ color:var(--danger); }
+.ai-assist__status.is-ok{ color:var(--success); }
+.item-edit__ai{ margin-left:auto; font-size:12px; color:var(--accent); background:var(--accent-soft); border:1px solid color-mix(in srgb,var(--accent) 24%,var(--border)); border-radius:7px; padding:3px 8px; cursor:pointer; }
+.item-edit__ai:hover{ background:color-mix(in srgb,var(--accent) 16%,var(--bg)); }
+.item-edit__ai:disabled{ opacity:.6; cursor:default; }
 </style>
 </head>
 <body>
@@ -1246,12 +1368,22 @@ button,a,[role="button"]{touch-action:manipulation;-webkit-tap-highlight-color:r
       <button class="icon-btn" id="settingsBtn" type="button" title="设置" aria-label="打开设置">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M19.4 13a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V19a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 17.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 13a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 6.87a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 2.55a1.65 1.65 0 0 0 1-1.51V1a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 6.6a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>
       </button>
+      <button class="icon-btn" id="shareImgBtn" type="button" title="生成分享图并下载 (PNG)" aria-label="生成分享图">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 3v12"/><path d="M7 8l5-5 5 5"/><path d="M5 15v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4"/></svg>
+      </button>
     </div>
   </header>
 
   <!-- ================= Status bar ================= -->
   <section class="statusbar" aria-label="今日状态">
-    <div class="statusbar__stats" id="statusStats"></div>
+    <div class="statusbar__stats" id="statusStats">
+      <div class="layout-hint" id="layoutHint" hidden>
+        <span class="layout-hint__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        </span>
+        <span class="layout-hint__text" id="layoutHintText"></span>
+      </div>
+    </div>
     <div class="statusbar__actions">
       <button class="btn" id="copyYesterdayBtn" type="button">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 8V5a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1h-3"/><rect x="4" y="8" width="12" height="13" rx="1"/></svg>
@@ -1370,7 +1502,7 @@ button,a,[role="button"]{touch-action:manipulation;-webkit-tap-highlight-color:r
 <script>
 'use strict';
 /* ==================================================================================
-   今课 Nowledge —— 单文件学习工具 · 2.5
+   今课 Nowledge —— 单文件学习工具 · V3
    架构分区：Utils / Data / Store / State / DateEngine / QuoteEngine / LayoutEngine
             / Dialog / Toast / FocusTimer / Renderer / Shortcuts / Init
    ================================================================================== */
@@ -1440,80 +1572,87 @@ const DEFAULT_SUBJECTS = [
   {id:'politics', name:'政治'}, {id:'history', name:'历史'}, {id:'geography', name:'地理'}
 ].map((s,i)=>({ id:s.id, name:s.name, order:i, enabled:true, custom:false, deletedAt:null }));
 
-/* 语录库：每条均含中文与英文对照，作者归属可考。
-   凡无法核实英文原文或作者归属存疑者，一律不收录。 */
+/* 语录库（已逐条复核原版与译本）：
+   - 中国古典：中文为典籍原文，出处精确到篇；英文为通行英译，仅作对照。
+   - 西方名言：英文为可考原句 / 学界标准英译，中文为通行权威中译；
+     希腊语、拉丁语、法语、德语原句已核对（界面只展示中英两行）。
+   - 权威译本依据：培根《论读书》王佐良译；帕斯卡《思想录》何兆武译；
+     亚里士多德《形而上学》W. D. Ross 英译 / 吴寿彭中译；加缪《西西弗神话》
+     J. O'Brien 英译；尼采《善恶的彼岸》Kaufmann 英译；《申辩篇》Grube 英译。
+   - 凡无一手出处、二手转述、网络伪引或作者误归属者，一律替换为可考条目。
+   - 条数固定 74，勿随意增删：历史日期的 quoteIndex 依赖 QUOTES.length。 */
 const QUOTES = [
   // —— 中国古典 · 治学与修身 ——
-  {zh:'学而时习之，不亦说乎？', en:'To learn, and then to practice what you have learned — is that not a joy?', author:'孔子 · 《论语》'},
-  {zh:'知之为知之，不知为不知，是知也。', en:'To know what you know, and to know what you do not know — that is wisdom.', author:'孔子 · 《论语》'},
-  {zh:'工欲善其事，必先利其器。', en:'A worker who wishes to do good work must first sharpen the tools.', author:'孔子 · 《论语》'},
-  {zh:'吾生也有涯，而知也无涯。', en:'My life has its limits, but knowledge has none.', author:'庄子'},
-  {zh:'知人者智，自知者明。', en:'Knowing others is wisdom; knowing yourself is enlightenment.', author:'老子'},
-  {zh:'合抱之木，生于毫末；九层之台，起于累土。', en:'A tree that fills the arms grows from a tiny shoot; a nine-story tower rises from a heap of earth.', author:'老子'},
-  {zh:'天下大事，必作于细。', en:'Great things in the world must be accomplished through attention to small details.', author:'老子'},
-  {zh:'不积跬步，无以至千里；不积小流，无以成江海。', en:'Without small steps, one cannot travel a thousand miles; without small streams, no river or sea is formed.', author:'荀子'},
-  {zh:'吾尝终日而思矣，不如须臾之所学也。', en:'I once spent a whole day in thought, but it was not as fruitful as a moment of study.', author:'荀子'},
-  {zh:'志不强者智不达。', en:'One whose will is not strong will not reach far in wisdom.', author:'墨子'},
-  {zh:'天行健，君子以自强不息。', en:'As heaven moves with ceaseless vigor, so the noble person never stops striving.', author:'《周易》'},
-  {zh:'穷则变，变则通，通则久。', en:'When something reaches its limit, it changes; once it changes, it flows; once it flows, it endures.', author:'《周易》'},
+  {zh:'学而时习之，不亦说乎？', en:"To learn, and then to practice what you have learned — is that not a joy?", author:'孔子 · 《论语·学而》'},
+  {zh:'知之为知之，不知为不知，是知也。', en:"To know what you know, and to know what you do not know — that is wisdom.", author:'孔子 · 《论语·为政》'},
+  {zh:'工欲善其事，必先利其器。', en:"A worker who wishes to do good work must first sharpen his tools.", author:'孔子 · 《论语·卫灵公》'},
+  {zh:'吾生也有涯，而知也无涯。', en:"My life has its limits, but knowledge has none.", author:'《庄子·养生主》'},
+  {zh:'知人者智，自知者明。', en:"Knowing others is wisdom; knowing yourself is enlightenment.", author:'老子 · 《道德经·第三十三章》'},
+  {zh:'合抱之木，生于毫末；九层之台，起于累土。', en:"A tree that fills the arms grows from a tiny shoot; a nine-story tower rises from a heap of earth.", author:'老子 · 《道德经·第六十四章》'},
+  {zh:'天下大事，必作于细。', en:"Great things in the world must be accomplished through attention to small details.", author:'老子 · 《道德经·第六十三章》'},
+  {zh:'不积跬步，无以至千里；不积小流，无以成江海。', en:"Without small steps, one cannot travel a thousand miles; without small streams, no river or sea is formed.", author:'《荀子·劝学》'},
+  {zh:'吾尝终日而思矣，不如须臾之所学也。', en:"I once spent a whole day in thought, but it was not as fruitful as a moment of study.", author:'《荀子·劝学》'},
+  {zh:'志不强者智不达。', en:"One whose will is not strong will not reach far in wisdom.", author:'《墨子·修身》'},
+  {zh:'天行健，君子以自强不息。', en:"As heaven moves with ceaseless vigor, so the noble person never stops striving.", author:'《周易·乾·象传》'},
+  {zh:'穷则变，变则通，通则久。', en:"When something reaches its limit, it changes; once it changes, it flows; once it flows, it endures.", author:'《周易·系辞下》'},
   {zh:'苟日新，日日新，又日新。', en:'If you can renew yourself one day, do so every day, and let there be daily renewal.', author:'《礼记·大学》'},
   {zh:'凡事预则立，不预则废。', en:'In all things, preparation leads to success, and the lack of it leads to failure.', author:'《礼记·中庸》'},
   {zh:'博学之，审问之，慎思之，明辨之，笃行之。', en:'Learn broadly, inquire carefully, reflect deeply, discern clearly, and practice earnestly.', author:'《礼记·中庸》'},
-  {zh:'流水不腐，户枢不蠹。', en:'Flowing water never goes stale; a well-used door hinge never rusts.', author:'《吕氏春秋》'},
+  {zh:'流水不腐，户枢不蠹。', en:"Flowing water never goes stale; a door hinge in constant use is never worm-eaten.", author:'《吕氏春秋·尽数》'},
   {zh:'石可破也，而不可夺坚；丹可磨也，而不可夺赤。', en:'A stone may be broken, but its hardness cannot be taken away; cinnabar may be ground, but its red cannot be taken away.', author:'《吕氏春秋·诚廉》'},
-  {zh:'业精于勤，荒于嬉；行成于思，毁于随。', en:'Skill is perfected by diligence and ruined by idleness; conduct is shaped by reflection and undone by carelessness.', author:'韩愈'},
-  {zh:'读书破万卷，下笔如有神。', en:'Read ten thousand scrolls until they wear thin, and your pen will move as if guided by the gods.', author:'杜甫'},
+  {zh:'业精于勤，荒于嬉；行成于思，毁于随。', en:"Skill is perfected by diligence and ruined by idleness; conduct is shaped by reflection and undone by carelessness.", author:'韩愈 · 《进学解》'},
+  {zh:'读书破万卷，下笔如有神。', en:"Read ten thousand scrolls until they wear thin, and your pen will move as if guided by the gods.", author:'杜甫 · 《奉赠韦左丞丈二十二韵》'},
   {zh:'会当凌绝顶，一览众山小。', en:'I shall climb to the very summit, and see all other mountains as small.', author:'杜甫 · 《望岳》'},
   {zh:'欲穷千里目，更上一层楼。', en:'To gaze even farther, a thousand miles beyond, climb one more story higher.', author:'王之涣 · 《登鹳雀楼》'},
-  {zh:'长风破浪会有时，直挂云帆济沧海。', en:'A time will come to ride the wind and break the waves; then I shall hoist my cloud-white sail to cross the vast blue sea.', author:'李白 · 《行路难》'},
-  {zh:'纸上得来终觉浅，绝知此事要躬行。', en:'What is learned from paper alone stays shallow; true knowledge demands that you do it yourself.', author:'陆游'},
-  {zh:'博观而约取，厚积而薄发。', en:'Read widely but choose carefully; gather deeply before you speak.', author:'苏轼'},
-  {zh:'少年易老学难成，一寸光阴不可轻。', en:'Youth fades quickly and learning is hard-won; not an inch of time should be spent lightly.', author:'朱熹'},
+  {zh:'长风破浪会有时，直挂云帆济沧海。', en:"A time will come to ride the wind and break the waves; then I shall hoist my cloud-white sail to cross the vast blue sea.", author:'李白 · 《行路难·其一》'},
+  {zh:'纸上得来终觉浅，绝知此事要躬行。', en:"What is learned from paper alone stays shallow; true knowledge demands that you do it yourself.", author:'陆游 · 《冬夜读书示子聿》'},
+  {zh:'博观而约取，厚积而薄发。', en:"Read widely but take only what is essential; accumulate deeply, then give forth sparingly.", author:'苏轼 · 《稼说送张琥》'},
+  {zh:'少年易老学难成，一寸光阴不可轻。', en:"Youth fades quickly and learning is hard-won; not an inch of time should be spent lightly.", author:'朱熹 · 《偶成》'},
   {zh:'读万卷书，行万里路。', en:'Read ten thousand books, and travel ten thousand miles.', author:'董其昌 · 《画旨》'},
-  {zh:'宝剑锋从磨砺出，梅花香自苦寒来。', en:'The sharp edge of a sword comes from grinding; the fragrance of plum blossoms comes from the bitter cold.', author:'《警世贤文》'},
+  {zh:'不经一番寒彻骨，怎得梅花扑鼻香。', en:"Without a bout of bone-chilling cold, how could the plum blossom smell so sweet?", author:'黄檗禅师 · 《上堂开示颂》'},
   {zh:'青，取之于蓝，而青于蓝；冰，水为之，而寒于水。', en:'Blue is drawn from the indigo plant, yet it is bluer than the plant; ice is made from water, yet it is colder than water.', author:'《荀子·劝学》'},
   {zh:'不登高山，不知天之高也；不临深溪，不知地之厚也。', en:'Without climbing a high mountain, one cannot know the height of the sky; without facing a deep stream, one cannot know the thickness of the earth.', author:'《荀子·劝学》'},
   {zh:'锲而舍之，朽木不折；锲而不舍，金石可镂。', en:'If you carve and then give up, even rotten wood will not break; if you carve without giving up, even metal and stone can be engraved.', author:'《荀子·劝学》'},
-  {zh:'立志欲坚不欲锐，成功在久不在速。', en:'Resolve should be firm rather than sharp; success lies in endurance rather than speed.', author:'张孝祥'},
+  {zh:'立志欲坚不欲锐，成功在久不在速。', en:"Resolve should be firm rather than sharp; success lies in endurance rather than speed.", author:'张孝祥 · 《论治体札子》'},
   {zh:'富贵必从勤苦得，男儿须读五车书。', en:'Wealth and honor come only from diligence and hardship; a true man must read five cartloads of books.', author:'杜甫 · 《柏学士茅屋》'},
   {zh:'粗缯大布裹生涯，腹有诗书气自华。', en:'Wrapped in coarse cloth through life, one whose heart is filled with poetry and books shines with an inner grace.', author:'苏轼 · 《和董传留别》'},
 
   // —— 西方哲学 · 认识与行动 ——
-  {zh:'认识你自己。', en:'Know thyself.', author:'德尔斐神庙箴言'},
-  {zh:'我只知道我一无所知。', en:'I know that I know nothing.', author:'苏格拉底'},
-  {zh:'唯一好的是知识，唯一坏的是无知。', en:'There is only one good, knowledge, and one evil, ignorance.', author:'苏格拉底'},
-  {zh:'人人生来都渴求知识。', en:'All men naturally desire knowledge.', author:'亚里士多德 · 《形而上学》'},
-  {zh:'教育之根味苦，教育之果味甘。', en:'The roots of education are bitter, but the fruit is sweet.', author:'亚里士多德'},
-  {zh:'求知不是孩童的游戏，要学到知识，必须付出艰辛的劳动。', en:'The pursuit of knowledge is no child\'s play; to truly learn, one must labor hard.', author:'亚里士多德 · 《政治学》'},
-  {zh:'我思故我在。', en:'I think, therefore I am.', author:'笛卡尔 · 《方法论》'},
-  {zh:'人是万物的尺度。', en:'Man is the measure of all things.', author:'普罗泰戈拉'},
-  {zh:'谁终将声震人间，必长久深自缄默；谁终将点燃闪电，必长久如云漂泊。', en:'He who is destined to thunder must first be silent for long; he who is destined to ignite lightning must first wander like a cloud.', author:'尼采'},
-  {zh:'那些没能杀死我的，使我变得更坚强。', en:'What does not kill me makes me stronger.', author:'尼采 · 《偶像的黄昏》'},
-  {zh:'与恶龙缠斗过久，自身亦成为恶龙；凝视深渊过久，深渊将回以凝视。', en:'He who fights with monsters should be careful lest he thereby become a monster. And if you gaze long into an abyss, the abyss will also gaze into you.', author:'尼采 · 《善恶的彼岸》'},
-  {zh:'人生的本质不在于活得长，而在于活得深。', en:'It is not the length of life, but the depth of life, that matters.', author:'罗素'},
-  {zh:'一个人懂得太多就会发现，要不撒谎很难。', en:'One who knows too much will find it hard not to lie.', author:'维特根斯坦'},
-  {zh:'教育之目的在于使人成为人。', en:'The aim of education is to make one truly human.', author:'康德'},
-  {zh:'判断痛苦地度过人生有价值与否，这才是回答哲学的基本问题。', en:'Judging whether life is or is not worth living is the fundamental question of philosophy.', author:'加缪 · 《西西弗斯神话》'},
-  {zh:'世上只有一种英雄主义，就是在认清生活真相之后依然热爱生活。', en:'There is only one heroism in the world: to see the world as it is, and to love it.', author:'罗曼·罗兰 · 《米开朗基罗传》'},
-  {zh:'给时光以生命，而不是给生命以时光。', en:'Give life to time, not time to life.', author:'帕斯卡'},
-  {zh:'人是一根会思想的芦苇。', en:'Man is but a reed, the weakest in nature, but he is a thinking reed.', author:'帕斯卡 · 《思想录》'},
+  {zh:'认识你自己。', en:"Know thyself.", author:'德尔斐阿波罗神庙箴言'},
+  {zh:'未经省察的人生不值得过。', en:"The unexamined life is not worth living.", author:'苏格拉底 · 柏拉图《申辩篇》38a'},
+  {zh:'惊奇是哲学家的感受，哲学正始于惊奇。', en:"Wonder is the feeling of a philosopher, and philosophy begins in wonder.", author:'柏拉图 · 《泰阿泰德》155d'},
+  {zh:'求知是人类的本性。', en:"All men by nature desire to know.", author:'亚里士多德 · 《形而上学》第一卷'},
+  {zh:'凡是要学了才会做的事，我们都是在做当中学会的。', en:"For the things we have to learn before we can do them, we learn by doing them.", author:'亚里士多德 · 《尼各马可伦理学》第二卷'},
+  {zh:'人按其本性是一种政治的动物。', en:"Man is by nature a political animal.", author:'亚里士多德 · 《政治学》第一卷'},
+  {zh:'我思故我在。', en:"I think, therefore I am.", author:'笛卡尔 · 《谈谈方法》(1637)'},
+  {zh:'人是万物的尺度。', en:"Man is the measure of all things.", author:'普罗泰戈拉 · 柏拉图《泰阿泰德》载'},
+  {zh:'一个人知道自己为什么而活，就可以忍受任何一种生活。', en:"He who has a why to live can bear almost any how.", author:'尼采 · 《偶像的黄昏·格言与箭》12'},
+  {zh:'那无法杀死我的，让我更加坚强。', en:"What does not kill me makes me stronger.", author:'尼采 · 《偶像的黄昏·格言与箭》8'},
+  {zh:'与怪物搏斗的人，须当心自己不要因此成为怪物；你若久久凝视深渊，深渊也会凝视你。', en:"He who fights with monsters should be careful lest he thereby become a monster. And if you gaze long into an abyss, the abyss will also gaze into you.", author:'尼采 · 《善恶的彼岸》第146节'},
+  {zh:'不在于生命的长度，而在于生命的深度。', en:"It is not length of life, but depth of life.", author:'爱默生 · 《书信与社会目标·不朽》(1876)'},
+  {zh:'凡是不可说的，必须保持沉默。', en:"Whereof one cannot speak, thereof one must be silent.", author:'维特根斯坦 · 《逻辑哲学论》命题7'},
+  {zh:'人只有通过教育才能成为人。', en:"Man can only become man through education.", author:'康德 · 《论教育学·导论》'},
+  {zh:'判断人生是否值得活，就是在回答哲学的根本问题。', en:"Judging whether life is or is not worth living amounts to answering the fundamental question of philosophy.", author:'加缪 · 《西西弗神话》开篇'},
+  {zh:'世界上只有一种真正的英雄主义，那就是在认清生活的真相后依然热爱生活。', en:"There is only one heroism in the world: to see the world as it is, and to love it.", author:'罗曼·罗兰 · 《米开朗基罗传》'},
+  {zh:'因而，我们全部的尊严就在于思想。', en:"All our dignity consists in thought.", author:'帕斯卡 · 《思想录》'},
+  {zh:'人只不过是一根苇草，是自然界最脆弱的东西；但他是一根能思想的苇草。', en:"Man is but a reed, the weakest in nature, but he is a thinking reed.", author:'帕斯卡 · 《思想录》'},
 
   // —— 科学与求知 ——
-  {zh:'想象力比知识更重要，因为知识是有限的，而想象力概括着世界上的一切。', en:'Imagination is more important than knowledge. For knowledge is limited, whereas imagination embraces the entire world.', author:'爱因斯坦'},
-  {zh:'我并非特别聪明，只是与问题相处得更久一些。', en:"It's not that I'm so smart, it's just that I stay with problems longer.", author:'爱因斯坦'},
-  {zh:'科学与其说是一堆知识，不如说是一种思维方式。', en:'Science is a way of thinking much more than it is a body of knowledge.', author:'费曼'},
-  {zh:'生活中没有什么值得畏惧的，只有需要理解的。', en:'Nothing in life is to be feared, it is only to be understood.', author:'居里夫人 Marie Curie'},
-  {zh:'我每发怒一分钟，便失去了六十秒的幸福。', en:'For every minute you are angry you lose sixty seconds of happiness.', author:'爱默生 Ralph Waldo Emerson'},
+  {zh:'想象力比知识更重要。因为知识是有限的，而想象力囊括整个世界。', en:"Imagination is more important than knowledge. For knowledge is limited, whereas imagination embraces the entire world.", author:'爱因斯坦 · 1929年访谈'},
+  {zh:'重要的是不要停止发问；永远不要失去那份神圣的好奇心。', en:"The important thing is not to stop questioning. Never lose a holy curiosity.", author:'爱因斯坦 · 1955年书信'},
+  {zh:'我很早就懂得了「知道一样东西的名字」和「真正认识它」之间的区别。', en:"I learned very early the difference between knowing the name of something and knowing something.", author:'费曼 · 《什么是科学？》(1966)'},
+  {zh:'生活中没有什么值得畏惧的，只有需要理解的。', en:"Nothing in life is to be feared, it is only to be understood.", author:'玛丽·居里'},
+  {zh:'美好的人生由爱所激发，由知识所引导。', en:"The good life is one inspired by love and guided by knowledge.", author:'罗素 · 《我的信仰》(1925)'},
   {zh:'天才就是百分之一的灵感加上百分之九十九的汗水。', en:'Genius is one percent inspiration and ninety-nine percent perspiration.', author:'爱迪生'},
-  {zh:'科学的灵感，决不是坐待可以得来的。', en:'Scientific inspiration never comes to those who merely sit and wait.', author:'华罗庚'},
-  {zh:'在科学上没有平坦的大道，只有不畏劳苦沿着陡峭山路攀登的人，才有希望达到光辉的顶点。', en:'There is no smooth road in science; only those who brave the steep paths can hope to reach the shining summit.', author:'马克思'},
-  {zh:'如果我看得更远，那是因为我站在巨人的肩膀上。', en:'If I have seen further, it is by standing on the shoulders of giants.', author:'牛顿'},
-  {zh:'阅读使人完美，思考使人深刻，交谈使人清晰。', en:'Reading makes a full man, conference a ready man, and writing an exact man.', author:'培根 · 《论读书》'},
-  {zh:'尽信书，则不如无书。', en:'To believe everything in books is worse than to have no books at all.', author:'孟子 · 《孟子·尽心下》'},
+  {zh:'科学的灵感，决不是坐待可以等来的。', en:"Scientific inspiration is never to be had by sitting and waiting for it.", author:'华罗庚 · 《要有锲而不舍的精神》'},
+  {zh:'在科学上没有平坦的大道，只有不畏劳苦沿着陡峭山路攀登的人，才有希望达到光辉的顶点。', en:"There is no royal road to science, and only those who do not dread the fatiguing climb of its steep paths have a chance of gaining its luminous summits.", author:'马克思 · 《资本论》法文版跋'},
+  {zh:'如果我看得更远，那是因为我站在巨人的肩膀上。', en:"If I have seen further, it is by standing on the shoulders of giants.", author:'牛顿 · 致胡克的信(1676)'},
+  {zh:'读书使人充实，讨论使人机智，笔记使人准确。', en:"Reading maketh a full man; conference a ready man; and writing an exact man.", author:'培根 · 《论读书》(王佐良译)'},
+  {zh:'尽信《书》，则不如无《书》。', en:"It would be better to have no Book of History at all than to believe everything in it.", author:'孟子 · 《孟子·尽心下》'},
 
   // —— 励志与人生 ——
   {zh:'千里之行，始于足下。', en:'A journey of a thousand miles begins with a single step.', author:'老子 · 《道德经》'},
-  {zh:'言之无文，行而不远。', en:'Words without literary grace will not travel far.', author:'孔子 · 《左传》'},
+  {zh:'言之无文，行而不远。', en:"Words without literary grace will not travel far.", author:'《左传·襄公二十五年》引孔子语'},
   {zh:'三军可夺帅也，匹夫不可夺志也。', en:'The commander of a great army may be taken away, but the will of even a common man cannot be taken away.', author:'孔子 · 《论语·子罕》'},
   {zh:'士不可以不弘毅，任重而道远。', en:'A scholar must be broad-minded and resolute, for his burden is heavy and his journey is long.', author:'曾子 · 《论语·泰伯》'},
   {zh:'穷且益坚，不坠青云之志。', en:'The more difficult the circumstances, the firmer one\'s resolve; never let fall the aspiration to reach the clouds.', author:'王勃 · 《滕王阁序》'},
@@ -1522,7 +1661,7 @@ const QUOTES = [
   {zh:'山重水复疑无路，柳暗花明又一村。', en:'Where hills and streams seem to end, a village suddenly appears amid the willows and flowers.', author:'陆游 · 《游山西村》'},
   {zh:'先天下之忧而忧，后天下之乐而乐。', en:'Be the first to bear the world\'s worries, and the last to enjoy its pleasures.', author:'范仲淹 · 《岳阳楼记》'},
   {zh:'鞠躬尽瘁，死而后已。', en:'Bend one\'s back to the task until one\'s dying day.', author:'诸葛亮 · 《后出师表》'},
-  {zh:'勿以恶小而为之，勿以善小而不为。', en:'Do not commit an evil deed because it is small; do not neglect a good deed because it is small.', author:'刘备 · 《三国志》'},
+  {zh:'勿以恶小而为之，勿以善小而不为。', en:"Do not commit an evil deed because it is small; do not neglect a good deed because it is small.", author:'刘备 · 遗诏（《三国志》注引）'},
   {zh:'静以修身，俭以养德。', en:'Cultivate oneself through stillness; nurture virtue through frugality.', author:'诸葛亮 · 《诫子书》'}
 ];
 
@@ -1602,7 +1741,8 @@ const State = (() => {
         soundEnabled: true,
         shortcuts: { 'e':'e', 'f':'f', 'n':'n', 'p':'p' }
       },
-      meta: { onboardingShown:false, firstOpen: Utils.dateKey(new Date()) }
+      meta: { onboardingShown:false, firstOpen: Utils.dateKey(new Date()) },
+      ai: { enabled:false, list:[], activeId:null }
     };
   }
 
@@ -1613,9 +1753,7 @@ const State = (() => {
     // —— 版本比对放在最前：先按旧版本做结构性转换，再做字段补位 ——
     if(s.version === undefined) s.version = 1; // 无版本号的旧数据按基线 v1 处理
     // 注意：结构性变更（如重命名字段）必须放在下方「补字段」之前，
-    // 否则补字段会用默认值占位，破坏旧数据的真实结构。示例：
-    // if(s.version < 2){ s.newField = s.oldField; delete s.oldField; s.version = 2; }
-    // if(s.version < 3){ /* v2 → v3 字段转换 */ s.version = 3; }
+    // 否则补字段会用默认值占位，破坏旧数据的真实结构。
 
     // —— 字段补位（向前兼容，仅新增缺失字段）——
     if(!s.exams) s.exams = [];
@@ -1624,6 +1762,14 @@ const State = (() => {
     if(!s.settings.shortcuts) s.settings.shortcuts = { e:'e', f:'f', n:'n', p:'p' };
     if(!s.meta) s.meta = { onboardingShown:false, firstOpen: Utils.dateKey(new Date()) };
     if(!s.days) s.days = {};
+    if(!s.ai) s.ai = { enabled:false, list:[], activeId:null };
+    // 修复旧版「测试连接」遗留：临时 __test__ 配置可能被 debounce 写进存档，
+    // 并让 activeId 指向已不存在的项，导致 AI 整体不可用。读入时自动净化。
+    if(!Array.isArray(s.ai.list)) s.ai.list = [];
+    s.ai.list = s.ai.list.filter(x=>x && x.id && x.id!=='__test__');
+    if(s.ai.activeId==='__test__' || (s.ai.activeId && !s.ai.list.some(x=>x.id===s.ai.activeId))){
+      s.ai.activeId = s.ai.list.length ? s.ai.list[0].id : null;
+    }
 
     // 版本归一：写回当前 schema 版本
     s.version = SCHEMA_VERSION;
@@ -1641,13 +1787,13 @@ const State = (() => {
   function ensureDay(key){
     if(!state.days[key]){
       const assignments = {};
-      state.subjects.forEach(s=>{ assignments[s.id] = { text:'', completed:false, completedAt:null, updatedAt:null }; });
+      state.subjects.forEach(s=>{ assignments[s.id] = { text:'', completed:false, completedAt:null, updatedAt:null, items:null }; });
       state.days[key] = { assignments, note:'', quoteIndex: Utils.hashStr(key) % QUOTES.length, quoteOverride:null, focusSessions:0, focusSeconds:0 };
     }else{
       // 确保新增学科在旧日期里也存在记录
       state.subjects.forEach(s=>{
         if(!state.days[key].assignments[s.id]){
-          state.days[key].assignments[s.id] = { text:'', completed:false, completedAt:null, updatedAt:null };
+          state.days[key].assignments[s.id] = { text:'', completed:false, completedAt:null, updatedAt:null, items:null };
         }
       });
     }
@@ -1745,107 +1891,447 @@ const QuoteEngine = (() => {
 
 /* ============================== 7. LayoutEngine 自适应排版 ============================== */
 /*
- * 核心原则：
- * 1. 不再只靠字符数估算高度。
- * 2. 直接让浏览器排版真实 DOM，再读取每张卡片的实际几何高度。
- * 3. 在候选列数 × 字号 × 间距中寻找“能完整放入视口”的最优解。
- * 4. 如果所有方案都无法放下，才进入滚动兜底；绝不把文字硬截断。
+ * 四层架构：
+ * 1. 策略层 - 定义约束、目标、兜底（调用方）
+ * 2. 求解层 - 推理优先，搜索为底（本模块核心）
+ * 3. 测量层 - 提供"参数→几何"能力（MeasureAdapter）
+ * 4. 适配层 - 连接渲染器，含过渡动画
+ *
+ * 核心改进：
+ * - 给定列数 → 二分查找最大字号 O(log n)
+ * - 候选列数仅 3-5 个（而非穷举）
+ * - 缓存上次方案，内容变化小时优先复用
  */
 const LayoutEngine = (() => {
-  const FONT_STEPS = [18,17,16,15.5,15,14.5,14,13.5,13];
-  const CLASS_FONT_STEPS = [20,19,18,17,16,15,14.5];
-  const PAD_STEPS = [18,16,15,14,13,12];
-  const GAP_STEPS = [16,14,12,11,10,9];
+  // === 配置常量 ===
+  const MIN_CARD_WIDTH = 190;
+  const CLASS_MIN_CARD_WIDTH = 250;
+  const MIN_FONT_PX = 13;
+  const MAX_FONT_PX = 24;
+  const FONT_STEP = 0.5;
 
-  function candidateColumns(n, width, classroom){
-    if(n <= 1) return [1];
-    if(width < 520) return n <= 4 ? [1,2] : [1,2];
-    if(width < 760) return n <= 4 ? [2,1] : [2,3,1];
-    if(width < 980) return n <= 6 ? [2,3,1] : [3,2,4];
-    if(width < 1180) return classroom ? [3,4,2] : [3,2,4];
-    if(width < 1380) return classroom ? [3,4,5] : [3,4,2,5];
-    return classroom ? [4,3,5] : [4,3,5,6];
+  // === 用户偏好记忆（按场景隔离） ===
+  const userPrefs = { edit: null, classroom: null };
+
+  // === 状态缓存（按场景隔离，防止跨模式稳定性污染） ===
+  const lastResults = { edit: null, classroom: null };
+
+  // === 设备类型检测（使用容器宽度而非 window.innerWidth） ===
+  function detectDeviceType(availW) {
+    if (availW < 768) return 'phone';
+    if (availW >= 1440) return 'projector';
+    return 'desktop';
   }
 
-  function measureGrid(grid){
-    const cards = [...grid.querySelectorAll('.card:not(.is-hidden-subject)')];
-    if(!cards.length) return {height:0, maxBottom:0};
-    const base = grid.getBoundingClientRect();
-    let maxBottom = 0;
-    for(const card of cards){
-      const r = card.getBoundingClientRect();
-      maxBottom = Math.max(maxBottom, r.bottom - base.top);
+  // === 内容密度检测 ===
+  function detectContentDensity(n, availW, availH) {
+    // 根据卡片数量和可用空间判断密度
+    const avgCardArea = (availW * availH) / Math.max(1, n);
+    if (avgCardArea < 18000) return 'dense'; // 内容多，空间少
+    if (avgCardArea > 40000) return 'loose'; // 内容少，空间大
+    return 'medium';
+  }
+
+  // === 智能策略选择 ===
+  function selectStrategy(n, availW, availH, classroom) {
+    const device = detectDeviceType(availW);
+    const density = detectContentDensity(n, availW, availH);
+    const key = classroom ? 'classroom' : 'edit';
+
+    // 如果有用户上次的手动调整，优先使用
+    if (userPrefs[key]) {
+      return { ...userPrefs[key], source: 'user_preference' };
     }
-    return {height:Math.ceil(maxBottom), maxBottom};
-  }
 
-  function apply(grid, cols, fontPx, padding, gap, classroom){
-    grid.style.setProperty('--grid-gap', gap+'px');
-    grid.style.setProperty('--card-pad', padding+'px');
-    grid.style.setProperty('--card-title-size', Math.max(classroom ? 15 : 13, Math.round(fontPx*1.04*10)/10)+'px');
-    grid.style.setProperty('--card-body-size', fontPx+'px');
-    grid.style.gridTemplateColumns = `repeat(${cols}, minmax(0,1fr))`;
-  }
+    // 基于设备和内容密度自动选择
+    let colsBias = 0; // 负数=少列，正数=多列
+    let fontBias = 0; // 负数=小字，正数=大字
 
-  function compute(container, grid, n, classroom=false){
-    const rect = container.getBoundingClientRect();
-    const availW = Math.max(280, rect.width);
-    const availH = Math.max(180, rect.height);
-    if(!n) return {cols:1,fontPx:15,titleSize:15,padding:18,gap:14,scroll:false,height:0};
-
-    const old = {
-      visibility:grid.style.visibility, overflow:grid.style.overflow,
-      gridTemplateColumns:grid.style.gridTemplateColumns,
-      gap:grid.style.getPropertyValue('--grid-gap'),
-      pad:grid.style.getPropertyValue('--card-pad'),
-      title:grid.style.getPropertyValue('--card-title-size'),
-      body:grid.style.getPropertyValue('--card-body-size')
-    };
-    grid.style.visibility='hidden';
-    grid.style.overflow='visible';
-
-    const colsList = candidateColumns(n, availW, classroom);
-    const fonts = classroom ? CLASS_FONT_STEPS : FONT_STEPS;
-    let bestFit = null, bestAny = null;
-
-    for(const cols of colsList){
-      for(let fi=0; fi<fonts.length; fi++){
-        const fontPx = fonts[fi];
-        const padding = PAD_STEPS[Math.min(fi, PAD_STEPS.length-1)];
-        const gap = GAP_STEPS[Math.min(Math.max(0, cols-2), GAP_STEPS.length-1)];
-        apply(grid, cols, fontPx, padding, gap, classroom);
-        void grid.offsetHeight;
-        const m = measureGrid(grid);
-        const fits = m.height <= availH + 1;
-        const colsBalance = Math.abs(n/cols - Math.round(n/cols));
-        const widthPerCard = (availW - gap*(cols-1)) / cols;
-        const tooNarrow = widthPerCard < (classroom ? 250 : 190);
-        const score =
-          (fits ? 1e7 : 0) +
-          fontPx * 5000 -
-          m.height * 1.8 -
-          colsBalance * 90 -
-          Math.max(0, (classroom?270:210)-widthPerCard) * 2 -
-          (tooNarrow ? 30000 : 0) +
-          (cols===colsList[0] ? 150 : 0);
-
-        const candidate = {cols,fontPx,titleSize:Math.max(classroom?15:13,Math.round(fontPx*1.04*10)/10),padding,gap,scroll:!fits,height:m.height,score};
-        if(!bestAny || score > bestAny.score) bestAny=candidate;
-        if(fits && (!bestFit || score > bestFit.score)) bestFit=candidate;
+    if (classroom) {
+      // 教室模式：优先大字体、少列
+      if (device === 'projector') {
+        colsBias = -1;
+        fontBias = 2;
+      } else if (device === 'phone') {
+        colsBias = -1;
+        fontBias = 1;
+      }
+    } else {
+      // 编辑模式：根据内容密度调整
+      if (density === 'dense') {
+        colsBias = -1;
+        fontBias = -1;
+      } else if (density === 'loose') {
+        colsBias = 1;
+        fontBias = 1;
       }
     }
 
-    const result = bestFit || bestAny;
-    grid.style.visibility=old.visibility;
-    grid.style.overflow=old.overflow;
-    if(old.gridTemplateColumns) grid.style.gridTemplateColumns=old.gridTemplateColumns;
-    else grid.style.removeProperty('grid-template-columns');
-    for(const [k,v] of [['--grid-gap',old.gap],['--card-pad',old.pad],['--card-title-size',old.title],['--card-body-size',old.body]]){
-      if(v) grid.style.setProperty(k,v); else grid.style.removeProperty(k);
-    }
-    return result;
+    return {
+      colsBias,
+      fontBias,
+      density,
+      device,
+      source: 'auto'
+    };
   }
-  return {compute};
+
+  // === 记忆用户手动调整 ===
+  function rememberPreference(result, classroom) {
+    const key = classroom ? 'classroom' : 'edit';
+    if (result._userInitiated) {
+      // 反推出 colsBias/fontBias 存入 userPrefs
+      // 需要从 result 中获取学科数量（通过高度和卡片宽度反推，或直接用 cols 与 balanced 比较）
+      const maxCols = Math.min(6, Math.max(1, Math.floor(result.availW / (classroom ? 280 : 220))));
+      const balancedCols = Math.ceil(maxCols / 2);
+      const colsBias = result.cols < balancedCols ? -1 : result.cols > balancedCols ? 1 : 0;
+      const idealFont = classroom ? 24 : 18;
+      const fontBias = result.fontPx >= idealFont ? 1 : result.fontPx < idealFont ? -1 : 0;
+      userPrefs[key] = {
+        colsBias,
+        fontBias,
+        rememberedAt: Date.now()
+      };
+    }
+  }
+
+  // === 第三层：测量层 ===
+  const MeasureAdapter = {
+    getContainerSize(container) {
+      const rect = container.getBoundingClientRect();
+      return {
+        width: Math.max(280, rect.width),
+        height: Math.max(180, rect.height)
+      };
+    },
+
+    measureGridHeight(grid) {
+      // 同时支持 .card（编辑模式）和 .classroom-card（教室模式）
+      const cards = [...grid.querySelectorAll('.card:not(.is-hidden-subject), .classroom-card')];
+      if (!cards.length) return 0;
+      const gridRect = grid.getBoundingClientRect();
+      let maxBottom = 0;
+      for (const card of cards) {
+        const cardRect = card.getBoundingClientRect();
+        maxBottom = Math.max(maxBottom, cardRect.bottom - gridRect.top);
+      }
+      return Math.ceil(maxBottom);
+    }
+  };
+
+  // === 第二层：求解层 ===
+
+  /**
+   * 根据字号 + 场景联动 padding / gap
+   * 使用线性插值避免阈值跳变，字号渐变时间距平滑过渡
+   */
+  function resolvePaddingGap(fontPx, classroom) {
+    const maxF = classroom ? 32 : MAX_FONT_PX;
+    const t = Math.min(1, Math.max(0, (fontPx - MIN_FONT_PX) / (maxF - MIN_FONT_PX)));
+    if (classroom) {
+      return {
+        pad: Math.round((5 + 5 * t) * 2) / 2,
+        gap: Math.round((10 + 8 * t) * 2) / 2,
+        line: fontPx >= 26 ? 1.38 : fontPx >= 20 ? 1.32 : fontPx >= 15 ? 1.28 : 1.24
+      };
+    }
+    return {
+      pad: Math.round((10 + 4 * t) * 2) / 2,
+      gap: Math.round((10 + 2 * t) * 2) / 2,
+      line: fontPx >= 18 ? 1.42 : fontPx >= 16 ? 1.36 : fontPx >= 14 ? 1.30 : 1.26
+    };
+  }
+
+  /**
+   * 二分查找 + 宽窗口微调：给定列数，找能完整放入视口的最大字号
+   * 返回 null 表示该列数下卡片宽度已低于最小限制
+   */
+  function findMaxFontByCols(cols, availW, availH, grid, classroom) {
+    const minCardW = classroom ? CLASS_MIN_CARD_WIDTH : MIN_CARD_WIDTH;
+    const cardWidth = (availW - (cols - 1) * 12) / cols;
+    if (cardWidth < minCardW) return null;
+
+    // 二分查找：字号范围小（13-24px），约5-6次测量
+    // 教室模式允许更大字号（最高32px），与 resolvePaddingGap 的 maxF 保持一致
+    const maxFont = classroom ? 32 : MAX_FONT_PX;
+    let lo = MIN_FONT_PX;
+    let hi = maxFont;
+    let best = MIN_FONT_PX;
+    while (lo <= hi) {
+      const mid = Math.round((lo + hi) / 2 / FONT_STEP) * FONT_STEP; // 对齐到 0.5px 步长
+      const { pad, gap } = resolvePaddingGap(mid, classroom);
+      applyStyles(grid, cols, mid, pad, gap, classroom, true);
+      void grid.offsetHeight;
+      const height = MeasureAdapter.measureGridHeight(grid);
+      if (height <= availH + 2) {
+        best = mid;
+        lo = mid + FONT_STEP;
+      } else {
+        hi = mid - FONT_STEP;
+      }
+    }
+    // 恢复 grid 到最终 best 状态
+    const { pad: bestPad, gap: bestGap } = resolvePaddingGap(best, classroom);
+    applyStyles(grid, cols, best, bestPad, bestGap, classroom, true);
+    return best;
+  }
+
+  /** 生成 3-5 个候选列数（平衡、最小、最大及邻近值） */
+  function generateColumnCandidates(n, availW, classroom, strategy = null) {
+    const minCardW = classroom ? CLASS_MIN_CARD_WIDTH : MIN_CARD_WIDTH;
+    const minCols = Math.max(1, Math.ceil(n / Math.floor(availW / minCardW)));
+    const maxCols = Math.min(6, Math.max(1, Math.floor(availW / (classroom ? 280 : 220))));
+
+    const candidates = new Set();
+    const balanced = Math.round(n / Math.max(1, Math.floor(n / 2)));
+
+    // 根据策略调整候选范围
+    let preferredMin = minCols, preferredMax = maxCols;
+    if (strategy) {
+      if (strategy.colsBias < 0) {
+        // 倾向少列：缩小上限
+        preferredMax = Math.max(minCols, maxCols + strategy.colsBias);
+      } else if (strategy.colsBias > 0) {
+        // 倾向多列：扩大下限
+        preferredMin = Math.min(maxCols, minCols + strategy.colsBias);
+      }
+    }
+
+    // 优先添加平衡列数
+    if (balanced >= preferredMin && balanced <= preferredMax) {
+      candidates.add(balanced);
+    }
+    // 添加边界值
+    if (preferredMin >= 1 && preferredMin <= 6) candidates.add(preferredMin);
+    if (preferredMax >= 1 && preferredMax <= 6) candidates.add(preferredMax);
+    // 补充邻近值
+    for (let c = preferredMin; c <= preferredMax && candidates.size < 5; c++) {
+      candidates.add(c);
+    }
+    return Array.from(candidates).sort((a, b) => a - b);
+  }
+
+  /** 对候选方案打分 */
+  function scoreSolution(cols, fontPx, height, availH, n, classroom, strategy = null, availW = 800) {
+    const fits = height <= availH + 1;
+    const minCardW = classroom ? CLASS_MIN_CARD_WIDTH : MIN_CARD_WIDTH;
+    const widthPerCard = (availW - 12 * (cols - 1)) / cols;
+
+    // 窄卡惩罚（唯一硬性约束）
+    if (widthPerCard < minCardW) return { score: -Infinity, fits: false, reason: '卡片过窄' };
+
+    // 主要评分：字号越大越好（核心目标）
+    // 次要评分：溢出时惩罚，余量时轻微奖励
+    const overflowPenalty = fits ? 0 : (height - availH) * 100;
+    const spaceBonus = fits ? Math.min(200, (availH - height)) : 0;
+
+    // 列数均衡性：越接近 n/cols 为整数越好
+    const balanceBonus = Math.abs(n / cols - Math.round(n / cols)) < 0.1 ? 50 : 0;
+
+    // 稳定性加成：保持上次的列数（仅在字号相近时有效）
+    const key = classroom ? 'classroom' : 'edit';
+    const stabilityBonus = lastResults[key] && lastResults[key].cols === cols && Math.abs(lastResults[key].fontPx - fontPx) < 1 ? 100 : 0;
+
+    const fontBonus = (strategy && strategy.fontBias) ? strategy.fontBias * 50 : 0;
+
+    return {
+      score: fontPx * 100 + spaceBonus + balanceBonus + stabilityBonus - overflowPenalty + fontBonus,
+      fits,
+      reason: fits
+        ? `已放入视口，剩余 ${Math.round(availH - height)}px`
+        : `超出视口 ${Math.round(height - availH)}px`
+    };
+  }
+
+  /**
+   * 将方案应用到 grid DOM（双变量名支持）
+   * --grid-* 系列：编辑模式 main 界面
+   * --class-* 系列：教室模式 classroomView
+   * @param {boolean} probe - 探测期标志，true时禁用过渡动画
+   */
+  function applyStyles(grid, cols, fontPx, padding, gap, classroom, probe = false) {
+    const pre = classroom ? '--class' : '--grid';
+    const padPre = classroom ? '--class-pad' : '--card-pad';
+    const titlePre = classroom ? '--class-title' : '--card-title-size';
+    const bodyPre = classroom ? '--class-body' : '--card-body-size';
+    grid.style.setProperty(pre + '-gap', gap + 'px');
+    grid.style.setProperty(padPre, padding + 'px');
+    grid.style.setProperty(titlePre, Math.max(classroom ? 14 : 13, Math.round(fontPx * 1.04 * 10) / 10) + 'px');
+    grid.style.setProperty(bodyPre, fontPx + 'px');
+    if (classroom) {
+      // line height thresholds match resolvePaddingGap classroom branch
+      const lineH = fontPx >= 26 ? 1.38 : fontPx >= 20 ? 1.32 : fontPx >= 15 ? 1.28 : 1.24;
+      grid.style.setProperty('--class-line', String(lineH));
+    }
+    grid.style.gridTemplateColumns = `repeat(${cols}, minmax(0,1fr))`;
+    // 设置探测标志，控制 CSS transition
+    if (probe) {
+      grid.dataset.probing = 'true';
+    } else {
+      delete grid.dataset.probing;
+    }
+  }
+
+  // === 第二层：求解层 ===
+
+  // === 第一层：策略层（主计算入口） ===
+  /**
+   * @param {HTMLElement} container - 布局容器
+   * @param {HTMLElement} grid - 网格元素
+   * @param {number} n - 卡片数量
+   * @param {object} opts - { classroom: boolean, fallback: 'scale'|'scroll' }
+   */
+  function compute(container, grid, n, opts = {}) {
+    const { classroom = false, fallback = 'scroll', userInitiated = false } = opts;
+    const fallbackScale = fallback === 'scale';
+
+    if (!n) return createDefaultResult(classroom);
+
+    const { width: availW, height: availH } = MeasureAdapter.getContainerSize(container);
+
+    // 智能策略选择
+    const strategy = selectStrategy(n, availW, availH, classroom);
+
+    // 生成候选列数（传入策略）
+    const colsCandidates = generateColumnCandidates(n, availW, classroom, strategy);
+
+    // 只测量3-4个关键列数：最小、最平衡、中间、最大（减少重排）
+    // 用 Set 去重，避免重复测量
+    const keySet = new Set();
+    if (colsCandidates.length > 0) keySet.add(colsCandidates[0]); // 最小
+    // 加入最平衡列数：让 n/cols 最接近整数（如 n=9 时 cols=3，每列正好3个）
+    let balanced = colsCandidates[0], bestDev = Infinity;
+    for (const c of colsCandidates) {
+      const dev = Math.abs(n / c - Math.round(n / c));
+      if (dev < bestDev) { bestDev = dev; balanced = c; }
+    }
+    keySet.add(balanced);
+    const midIdx = Math.floor(colsCandidates.length / 2);
+    if (midIdx > 0 && midIdx < colsCandidates.length) keySet.add(colsCandidates[midIdx]); // 中间
+    if (colsCandidates.length > 1) keySet.add(colsCandidates[colsCandidates.length - 1]); // 最大
+    const keyCandidates = Array.from(keySet).sort((a, b) => a - b);
+
+    let bestResult = null;
+
+    for (const cols of keyCandidates) {
+      const maxFont = findMaxFontByCols(cols, availW, availH, grid, classroom);
+      if (maxFont === null) continue;
+
+      const { pad, gap } = resolvePaddingGap(maxFont, classroom);
+      applyStyles(grid, cols, maxFont, pad, gap, classroom, true);
+      void grid.offsetHeight;
+      const height = MeasureAdapter.measureGridHeight(grid);
+      const { score, fits, reason } = scoreSolution(cols, maxFont, height, availH, n, classroom, strategy, availW);
+
+      if (!bestResult || score > bestResult.score) {
+        bestResult = {
+          cols,
+          fontPx: maxFont,
+          titleSize: Math.max(classroom ? 14 : 13, Math.round(maxFont * 1.04 * 10) / 10),
+          padding: pad,
+          gap,
+          scroll: !fits,
+          height,
+          score,
+          reason
+        };
+      }
+    }
+
+    if (!bestResult) {
+      return createFallbackResult(container, grid, n, classroom, fallbackScale);
+    }
+
+    // 最终落定：把最优方案写入 DOM，避免探测残留参数短暂闪现
+    // 此时移除 probing 属性，启用 CSS 过渡动画
+    applyStyles(grid, bestResult.cols, bestResult.fontPx, bestResult.padding, bestResult.gap, classroom, false);
+    const key = classroom ? 'classroom' : 'edit';
+    lastResults[key] = { ...bestResult, classroom };
+
+    // 附加策略信息用于调试和显示（必须在 rememberPreference 之前）
+    bestResult._strategy = strategy;
+    bestResult._userInitiated = userInitiated;
+    bestResult.availW = availW; // 传递给 rememberPreference 用于计算 balancedCols
+
+    // 记忆用户偏好（仅当用户主动触发时）
+    if (userInitiated) {
+      rememberPreference(bestResult, classroom);
+    }
+
+    return bestResult;
+  }
+
+  function createDefaultResult(classroom) {
+    return {
+      cols: 1,
+      fontPx: classroom ? 18 : 15,
+      titleSize: classroom ? 14 : 13,
+      padding: 18,
+      gap: 14,
+      scroll: false,
+      height: 0,
+      score: 0,
+      reason: '无内容'
+    };
+  }
+
+  /**
+   * 兜底方案：根据 fallbackScale 决定是滚动还是整体缩放
+   * fallbackScale=true  → 整体缩放，永不滚动（教室模式）
+   * fallbackScale=false → 启用滚动（普通编辑模式）
+   */
+  function createFallbackResult(container, grid, n, classroom, fallbackScale) {
+    const { width: availW, height: availH } = MeasureAdapter.getContainerSize(container);
+    const cols = Math.min(2, Math.max(1, Math.floor(availW / (classroom ? 280 : 220))));
+    // 兜底时也先探测，再落定
+    applyStyles(grid, cols, MIN_FONT_PX, 12, 10, classroom, true);
+    void grid.offsetHeight;
+    const height = MeasureAdapter.measureGridHeight(grid);
+
+    if (fallbackScale) {
+      // 教室模式：整体缩放塞满一屏，永远不滚动
+      const scale = Math.min(1, availH / Math.max(1, height));
+      grid.style.transform = `scale(${scale})`;
+      grid.style.transformOrigin = 'top center';
+      // 兜底是异常状态，不保留稳定性加成
+      lastResults[classroom ? 'classroom' : 'edit'] = null;
+      delete grid.dataset.probing; // 防止 probing 泄漏
+      return {
+        cols,
+        fontPx: MIN_FONT_PX,
+        titleSize: classroom ? 14 : 13,
+        padding: 12,
+        gap: 10,
+        scroll: false,
+        height: availH,
+        score: -500,
+        reason: `内容过多，已自动缩放 ${Math.round(scale * 100)}% 以适应一屏`,
+        scalePercent: Math.round(scale * 100) // 结构化字段，避免字符串切分
+      };
+    }
+
+    // 落定：移除探测标志，启用过渡
+    delete grid.dataset.probing;
+    return {
+      cols,
+      fontPx: MIN_FONT_PX,
+      titleSize: classroom ? 14 : 13,
+      padding: 12,
+      gap: 10,
+      scroll: true,
+      height,
+      score: -1000,
+      reason: '所有方案均无法放入视口，已启用滚动兜底'
+    };
+  }
+
+  /** 清除用户偏好记忆 */
+  function clearPrefs(classroom) {
+    const key = classroom ? 'classroom' : 'edit';
+    userPrefs[key] = null;
+  }
+
+  return { compute, MeasureAdapter, clearPrefs };
 })();
 
 /* ============================== 8. Dialog 对话框系统 ============================== */
@@ -1984,6 +2470,24 @@ const Toast = (() => {
 
 /* ============================== 10. FocusTimer 专注时钟 ============================== */
 const FocusTimer = (() => {
+  // 状态持久化
+  const FOCUS_KEY = 'nowledge_focus_state';
+  function saveFocusState() {
+    try {
+      localStorage.setItem(FOCUS_KEY, JSON.stringify({ phase, running, endAt, remainingAtPause, round, savedAt: Date.now() }));
+    } catch(e) {}
+  }
+  function loadFocusState() {
+    try {
+      const raw = localStorage.getItem(FOCUS_KEY);
+      if (!raw) return null;
+      return JSON.parse(raw);
+    } catch(e) { return null; }
+  }
+  function clearFocusState() {
+    try { localStorage.removeItem(FOCUS_KEY); } catch(e) {}
+  }
+
   let phase = 'work'; // work | break
   let running = false;
   let endAt = 0; // 绝对结束时间戳，避免漂移
@@ -2017,6 +2521,7 @@ let wakeLock = null;
     round = 1;
     remainingAtPause = durations().work;
     renderTime();
+    clearFocusState();
   }
   function currentTotal(){ return phase==='work' ? durations().work : durations().brk; }
   function remaining(){
@@ -2028,12 +2533,14 @@ let wakeLock = null;
     running = true;
     endAt = Date.now() + remainingAtPause*1000;
     loop();
+    saveFocusState();
   }
   function pause(){
     if(!running) return;
     remainingAtPause = remaining();
     running = false;
     if(rafId) cancelAnimationFrame(rafId);
+    saveFocusState();
   }
   function toggle(){ running ? pause() : start(); updateUI(); }
   function skip(){
@@ -2066,6 +2573,7 @@ let wakeLock = null;
     else { phase = 'work'; round += 1; }
     remainingAtPause = currentTotal();
     updateUI();
+    saveFocusState(); // 保存阶段转换状态
     const s = State.get().settings;
     if(s.autoStartNext && !manualSkip) start();
   }
@@ -2132,7 +2640,36 @@ let wakeLock = null;
   }
   function isRunning(){ return running; }
   function init(){
-    remainingAtPause = currentTotal();
+    const saved = loadFocusState();
+    if (saved && saved.savedAt && (Date.now() - saved.savedAt) < 3600*1000) {
+      // 状态在1小时内保存的，恢复
+      phase = saved.phase || 'work';
+      remainingAtPause = saved.remainingAtPause !== undefined ? saved.remainingAtPause : currentTotal();
+      round = saved.round || 1;
+      if (saved.running) {
+        // 运行中状态：endAt 应该在未来
+        if (saved.endAt > Date.now()) {
+          running = true;
+          const elapsed = (Date.now() - (saved.endAt - remainingAtPause * 1000)) / 1000;
+          if (elapsed < remainingAtPause) {
+            remainingAtPause -= elapsed;
+          } else {
+            remainingAtPause = 0;
+          }
+          endAt = Date.now() + remainingAtPause * 1000;
+          if (remainingAtPause > 0) loop();
+        } else {
+          // endAt 已过期，当作未运行处理
+          remainingAtPause = currentTotal();
+        }
+      } else {
+        // 暂停状态：保留 pausedRemaining
+        running = false;
+      }
+    } else {
+      remainingAtPause = currentTotal();
+    }
+    updateUI(); // 确保 UI 显示正确状态
   }
   return { start, pause, toggle, skip, reset, setPreset, setCustom, updateUI, isRunning, init, acquireWakeLock, releaseWakeLock };
 })();
@@ -2198,7 +2735,7 @@ const Renderer = (() => {
     const day = currentDayRecord();
     const subs = visibleSubjects();
     const total = subs.length;
-    const done = subs.filter(s=>day.assignments[s.id] && day.assignments[s.id].completed).length;
+    const done = subs.filter(s=>{ const rec = day.assignments[s.id]; return rec && itemsAllDone(subjectItems(rec)); }).length;
     const pct = total ? Math.round(done/total*100) : 0;
     const todayDay = State.get().days[DateEngine.todayKey()];
     const focusMin = todayDay ? Math.round(todayDay.focusSeconds/60) : 0;
@@ -2211,7 +2748,12 @@ const Renderer = (() => {
         return `<span class="exam-chip">${Utils.escapeHtml(e.name)} 还有 <b>${days}</b> 天</span>`;
       }).join('');
 
-    els.statusStats.innerHTML = `
+    // 保留 layoutHint 元素，只更新 stats 内容
+    const hintEl = document.getElementById('layoutHint');
+    const statsContainer = document.createElement('span');
+    statsContainer.id = 'statsContent';
+    statsContainer.style.display = 'contents'; // 避免span-in-span破坏flex gap
+    statsContainer.innerHTML = `
       <span class="stat stat--accent">
         <svg class="progress-ring" viewBox="0 0 18 18"><circle cx="9" cy="9" r="${r}" fill="none" stroke="var(--border)" stroke-width="2.6"/><circle cx="9" cy="9" r="${r}" fill="none" stroke="var(--accent)" stroke-width="2.6" stroke-dasharray="${c}" stroke-dashoffset="${offset}" stroke-linecap="round" transform="rotate(-90 9 9)"/></svg>
         <span class="stat__value">${done}/${total}</span> 已完成 <span style="color:var(--muted-2)">(${pct}%)</span>
@@ -2219,6 +2761,32 @@ const Renderer = (() => {
       <span class="stat">今日专注 <span class="stat__value">${focusMin}</span> 分钟</span>
       ${examChips}
     `;
+    // 替换旧内容，保持 layoutHint 不变
+    const oldContent = els.statusStats.querySelector('#statsContent');
+    if (oldContent) {
+      oldContent.replaceWith(statsContainer);
+    } else {
+      // 如果是第一次渲染，先插入 stats 再 append layoutHint
+      els.statusStats.insertBefore(statsContainer, els.statusStats.firstChild);
+      if (hintEl && !els.statusStats.contains(hintEl)) {
+        els.statusStats.appendChild(hintEl);
+      }
+    }
+  }
+
+    function renderLayoutHint(layout) {
+    const hintEl = document.getElementById('layoutHint');
+    const hintTextEl = document.getElementById('layoutHintText');
+    if (!layout) { hintEl.hidden = true; return; }
+    // 默认隐藏，仅在特殊场景（用户偏好 / 异常状态）才显示
+    let text = null;
+    if (layout._strategy && layout._strategy.source === 'user_preference') {
+      text = `📌 已沿用上次布局 (${layout.cols} 列)`;
+    } else if (layout.scroll) {
+      text = `⚠️ 内容溢出，已启用滚动`;
+    }
+    if (text) { hintTextEl.textContent = text; hintEl.hidden = false; }
+    else hintEl.hidden = true;
   }
 
   function renderNote(){
@@ -2241,25 +2809,43 @@ const Renderer = (() => {
     const mode = State.get().settings.mode;
 
     subs.forEach(sub=>{
-      const rec = day.assignments[sub.id] || {text:'',completed:false,completedAt:null};
+      const rec = day.assignments[sub.id] || {text:'',completed:false,completedAt:null,items:null};
+      const items = subjectItems(rec);
+      const multi = items.length > 1;
+      const doneCount = itemsDoneCount(items);
+      const allDone = itemsAllDone(items);
       const card = document.createElement('div');
-      card.className = 'card' + (mode==='edit'?' is-clickable':'') + (rec.completed?' is-done':'');
+      card.className = 'card' + (mode==='edit'?' is-clickable':'') + (allDone?' is-done':'') + (multi?' is-multi':'');
       card.setAttribute('role','listitem');
       card.dataset.subjectId = sub.id;
       card.tabIndex = mode==='edit' ? 0 : -1;
-      const hasText = rec.text && rec.text.trim().length>0;
-      const bodyText = hasText ? Utils.escapeHtml(rec.text) : (mode==='edit' ? '点击添加今天的作业' : '暂无作业');
-      const metaText = rec.completed && rec.completedAt ? `完成于 ${rec.completedAt}` : (hasText? '' : '');
-      card.innerHTML = `
-        <div class="card__head">
-          <span class="card__title">${sub.custom?'<span class="card__custom-dot" title="自定义学科"></span>':''}${Utils.escapeHtml(sub.name)}</span>
-          <button class="card__check" aria-label="标记完成" title="标记完成/未完成"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M4 12l5 5 11-11"/></svg></button>
-        </div>
-        <div class="card__body${hasText?'':' is-empty'}">${bodyText}</div>
-        <div class="card__foot">
-          <span class="card__meta">${metaText}</span>
-          <button class="card__menu-btn" aria-label="更多操作" title="更多操作">${subjectMenuIcon()}</button>
-        </div>`;
+
+      const titleHtml = `<span class="card__title">${sub.custom?'<span class="card__custom-dot" title="自定义学科"></span>':''}${Utils.escapeHtml(sub.name)}</span>`;
+      const countHtml = multi ? `<span class="card__count">${doneCount}/${items.length}</span>` : '';
+      const checkHtml = `<button class="card__check" aria-label="标记完成" title="标记完成/未完成"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M4 12l5 5 11-11"/></svg></button>`;
+      const headHtml = `<div class="card__head">${titleHtml}${countHtml}${checkHtml}</div>`;
+
+      let bodyHtml;
+      if(multi){
+        bodyHtml = `<div class="card__items">` + items.map((it,idx)=>`
+          <label class="card__item${it.completed?' is-done':''}">
+            <input type="checkbox" class="card__item-check" data-item="${idx}" ${it.completed?'checked':''} aria-label="第 ${idx+1} 项完成">
+            <span class="card__item-index">${idx+1}</span>
+            <span class="card__item-text">${it.text&&it.text.trim()?Utils.escapeHtml(it.text):'<span class="card__item-empty">空白项</span>'}</span>
+          </label>`).join('') + `</div>`;
+      } else {
+        const hasText = rec.text && rec.text.trim().length>0;
+        const bodyText = hasText ? Utils.escapeHtml(rec.text) : (mode==='edit' ? '点击添加今天的作业' : '暂无作业');
+        bodyHtml = `<div class="card__body${hasText?'':' is-empty'}">${bodyText}</div>`;
+      }
+
+      const metaText = allDone && rec.completedAt ? `完成于 ${rec.completedAt}` : (multi ? `${doneCount}/${items.length} 项完成` : '');
+      const footHtml = `<div class="card__foot">
+        <span class="card__meta">${metaText}</span>
+        <button class="card__menu-btn" aria-label="更多操作" title="更多操作">${subjectMenuIcon()}</button>
+      </div>`;
+
+      card.innerHTML = headHtml + bodyHtml + footHtml;
       els.grid.appendChild(card);
     });
 
@@ -2274,23 +2860,31 @@ const Renderer = (() => {
     const day = currentDayRecord();
     const subs = visibleSubjects();
     if(!subs.length) return;
-    const items = subs.map(s=>({ text: (day.assignments[s.id] && day.assignments[s.id].text) || '' }));
-    // 使用完整文本内容作为签名的一部分，而非仅长度，避免因换行变化导致不重排
-    const sig = els.gridWrap.clientWidth+'x'+window.innerHeight+'x'+items.map(i=>i.text.length+':'+i.text.substring(0,50)).join(',');
+    const items = subs.map(s=>({ text: subjectItems(day.assignments[s.id]).map(i=>i.text).join('|') }));
+    // 使用哈希签名，避免长字符串拼接和持有
+    const sig = `${els.gridWrap.clientWidth}x${window.innerHeight}x${Utils.hashStr(items.map(i=>i.text).join('|'))}`;
     // 签名一致说明容器尺寸与内容长度均未变化，跳过重复测量以省掉整轮 reflow。
     if(sig === lastLayoutSig) return;
     lastLayoutSig = sig;
-    const classroom = State.get().settings.mode === 'classroom';
-    const layout = LayoutEngine.compute(els.gridWrap, els.grid, subs.length, classroom);
-    els.grid.style.setProperty('--grid-gap', layout.gap+'px');
-    els.grid.style.setProperty('--card-pad', layout.padding+'px');
-    els.grid.style.setProperty('--card-title-size', layout.titleSize+'px');
-    els.grid.style.setProperty('--card-body-size', layout.fontPx+'px');
-    els.grid.style.gridTemplateColumns = `repeat(${layout.cols}, minmax(0,1fr))`;
+    const isClassroom = State.get().settings.mode === 'classroom';
+    // 教室模式传 fallback:'scale'，兜底时整体缩放不滚动；编辑模式允许滚动
+    const layout = LayoutEngine.compute(els.gridWrap, els.grid, subs.length, {
+      classroom: isClassroom,
+      fallback: isClassroom ? 'scale' : 'scroll'
+    });
+
     els.grid.classList.toggle('is-scrollable', layout.scroll);
     els.grid.dataset.cols = String(layout.cols);
     els.grid.dataset.density = layout.fontPx <= 13.5 ? 'compact' : layout.fontPx <= 14.5 ? 'dense' : 'comfortable';
-    els.grid.setAttribute('aria-label', `今日作业 ${layout.cols} 列自适应布局${layout.scroll?'，内容较多可滚动':''}`);
+    els.grid.dataset.reason = layout.reason || '';
+
+    // 存储布局信息供调试和显示使用
+    els.grid._lastLayout = layout;
+
+    els.grid.setAttribute('aria-label', `今日作业 ${layout.cols} 列自适应布局${layout.scroll?'，内容较多可滚动':''}，${layout.reason||''}`);
+
+    // 显示布局说明
+    renderLayoutHint(layout);
   }
 
   function renderOnboarding(){
@@ -2350,6 +2944,394 @@ const Renderer = (() => {
            visibleSubjects, currentDayRecord, els };
 })();
 
+/* ============================== 11.5 作业子项（多子项拆分）辅助 ============================== */
+// 每门作业可由若干独立子项组成。items 为真源；text/completed 为兼容旧字段（派生）。
+function subjectItems(rec){
+  if(rec && Array.isArray(rec.items) && rec.items.length) return rec.items;
+  return [{ text:(rec&&rec.text)||'', completed:!!(rec&&rec.completed), completedAt:(rec&&rec.completedAt)||null }];
+}
+function itemsDoneCount(items){ return items.filter(i=>i.completed).length; }
+function itemsAllDone(items){ return items.length>0 && items.every(i=>i.completed); }
+// 将 items 同步回旧字段，确保未升级的读取方（及导出/搜索）仍可工作
+function syncLegacyFromItems(rec){
+  const items = subjectItems(rec);
+  rec.text = items.map(i=>(i.text||'').trim()).filter(Boolean).join('\n');
+  rec.completed = itemsAllDone(items);
+  if(rec.completed){
+    rec.completedAt = items.reduce((m,i)=> (i.completedAt && (!m || i.completedAt>m)) ? i.completedAt : m, null);
+  } else {
+    rec.completedAt = null;
+  }
+}
+
+/* ============================== 11.7 分享图生成（编辑模式） ============================== */
+// 根据当天作业，用 Canvas 重绘一张简约美观的分享图（非 DOM 截屏），并下载为 PNG。
+// 教室模式不可用：按钮已在教室模式下经 CSS 隐藏。
+const ShareImage = (() => {
+  const W = 1080;          // 逻辑宽度
+  const PAD = 72;          // 外边距
+  const SCALE = 2;         // 2x 高清
+  const FONT = "'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Sans CJK SC',sans-serif";
+  const C = {
+    bgTop:'#eef2fb', bgBot:'#e6ebf7',
+    card:'#ffffff', shadow:'rgba(40,60,120,.14)',
+    ink:'#1f2433', inkSoft:'#3a4156', muted:'#9aa3b8',
+    accent:'#3454D1', accentSoft:'#e8ecfb', line:'#eceef5'
+  };
+
+  function roundRect(ctx,x,y,w,h,r){
+    r = Math.min(r, w/2, h/2);
+    ctx.beginPath();
+    ctx.moveTo(x+r,y);
+    ctx.arcTo(x+w,y,x+w,y+h,r);
+    ctx.arcTo(x+w,y+h,x,y+h,r);
+    ctx.arcTo(x,y+h,x,y,r);
+    ctx.arcTo(x,y,x+w,y,r);
+    ctx.closePath();
+  }
+
+  // 在已设置好字体的 ctx 上按最大宽度逐字换行（兼容 emoji/中英混排）
+  function wrap(ctx, text, maxW){
+    const out=[]; let cur='';
+    const chars = Array.from(text||'');
+    for(const ch of chars){
+      if(cur && ctx.measureText(cur+ch).width > maxW){ out.push(cur); cur=ch; }
+      else cur+=ch;
+    }
+    if(cur) out.push(cur);
+    return out.length ? out : [''];
+  }
+
+  function buildData(){
+    const key = DateEngine.getViewingKey();
+    const d = Utils.keyToDate(key);
+    const day = Renderer.currentDayRecord();
+    const subs = Renderer.visibleSubjects();
+    let subjects = subs.map(s=>{
+      const rec = day.assignments[s.id];
+      const items = subjectItems(rec).map(i=>({
+        text: (i.text && i.text.trim()) ? i.text : '暂无作业',
+        done: !!i.completed,
+        empty: !(i.text && i.text.trim())
+      }));
+      return { name:s.name, items };
+    });
+    if(!subjects.length) subjects = [{ name:'', items:[{ text:'今天还没有布置作业～', done:false, empty:true }] }];
+    return {
+      key,
+      dateLabel:`${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日`,
+      weekday: Utils.WEEKDAYS[d.getDay()],
+      subjects
+    };
+  }
+
+  function generate(){
+    const data = buildData();
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+
+    const contentW = W - PAD*2;
+    const headH = 158;
+    const nameH = 50, nameGap = 16, itemBase = 58, lineH = 30, itemGap = 10, blockGap = 34, footerH = 64;
+
+    // —— 测量阶段（identity 变换，保证逻辑像素宽度准确）——
+    ctx.font = `600 30px ${FONT}`; // 子项正文字号，用于换行测量
+    const blocks = data.subjects.map(sub=>{
+      const measured = sub.items.map(it=>{
+        const lines = wrap(ctx, it.text, contentW - 44 - 26).map(t=>({ t, w: ctx.measureText(t).width }));
+        const h = itemBase + (lines.length-1)*lineH;
+        return { it, lines, h };
+      });
+      const blockH = nameH + nameGap + measured.reduce((a,m)=>a+m.h,0) + (sub.items.length-1)*itemGap;
+      return { sub, measured, blockH };
+    });
+
+    let curY = PAD + headH + 24;
+    blocks.forEach(b=>{ curY += b.blockH + blockGap; });
+    const H = curY + footerH;
+
+    // —— 绘制阶段（2x 高清）——
+    canvas.width = W*SCALE; canvas.height = H*SCALE;
+    ctx.setTransform(SCALE,0,0,SCALE,0,0);
+
+    // 背景渐变
+    const g = ctx.createLinearGradient(0,0,0,H);
+    g.addColorStop(0,C.bgTop); g.addColorStop(1,C.bgBot);
+    ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+
+    // 白色卡片 + 柔和投影
+    const cardX=PAD-24, cardY=PAD-24, cardW=W-(PAD-24)*2, cardH=H-(PAD-24)*2;
+    ctx.save();
+    ctx.shadowColor=C.shadow; ctx.shadowBlur=44; ctx.shadowOffsetY=20;
+    ctx.fillStyle=C.card; roundRect(ctx,cardX,cardY,cardW,cardH,28); ctx.fill();
+    ctx.restore();
+
+    ctx.textBaseline='alphabetic';
+
+    // 头部
+    let y = PAD;
+    ctx.fillStyle=C.accent; ctx.font=`800 28px ${FONT}`;
+    ctx.fillText('今课', PAD, y+30);
+    ctx.fillStyle=C.muted; ctx.font=`600 22px ${FONT}`;
+    ctx.fillText('Nowledge', PAD+58, y+30);
+    ctx.fillStyle=C.accent; roundRect(ctx,PAD,y+44,38,5,3); ctx.fill();   // 品牌短下划线
+    ctx.fillStyle=C.ink; ctx.font=`800 66px ${FONT}`;
+    ctx.fillText(data.dateLabel, PAD, y+128);
+    ctx.fillStyle=C.accent; ctx.font=`700 34px ${FONT}`;
+    ctx.textAlign='right';
+    ctx.fillText(data.weekday, W-PAD, y+120);
+    ctx.textAlign='left';
+    ctx.strokeStyle=C.line; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(PAD, y+headH); ctx.lineTo(W-PAD, y+headH); ctx.stroke();
+
+    // 主体：学科 + 子项
+    y = y + headH + 24;
+    blocks.forEach(block=>{
+      const { sub, measured } = block;
+      if(sub.name){
+        ctx.fillStyle=C.accent; roundRect(ctx,PAD,y,6,nameH-6,3); ctx.fill();
+        ctx.fillStyle=C.ink; ctx.font=`800 40px ${FONT}`;
+        ctx.fillText(sub.name, PAD+20, y+nameH-12);
+      }
+      y += nameH + nameGap;
+      measured.forEach(m=>{
+        const { it, lines, h } = m;
+        const cx = PAD+16, cy = y + 19, boxR = 13;
+        ctx.beginPath(); ctx.arc(cx,cy,boxR,0,Math.PI*2);
+        if(it.done){ ctx.fillStyle=C.accent; ctx.fill(); }
+        else { ctx.fillStyle='#fff'; ctx.fill(); }
+        ctx.lineWidth=2.6; ctx.strokeStyle = it.done ? C.accent : (it.empty?C.line:C.muted); ctx.stroke();
+        if(it.done){
+          ctx.strokeStyle='#fff'; ctx.lineWidth=3; ctx.lineCap='round'; ctx.lineJoin='round';
+          ctx.beginPath();
+          ctx.moveTo(cx-6,cy); ctx.lineTo(cx-1.5,cy+5); ctx.lineTo(cx+7,cy-6);
+          ctx.stroke();
+        }
+        ctx.font=`600 30px ${FONT}`;
+        let ty = cy - 5;
+        lines.forEach(line=>{
+          ctx.fillStyle = it.empty ? C.muted : (it.done ? C.muted : C.inkSoft);
+          ctx.fillText(line.t, PAD+44, ty);
+          if(it.done){
+            ctx.strokeStyle=C.muted; ctx.lineWidth=1.5;
+            ctx.beginPath(); ctx.moveTo(PAD+44, ty-10); ctx.lineTo(PAD+44+line.w, ty-10); ctx.stroke();
+          }
+          ty += lineH;
+        });
+        y += h + itemGap;
+      });
+      y += blockGap - itemGap;
+    });
+
+    // 页脚
+    let total=0, done=0;
+    data.subjects.forEach(s=>s.items.forEach(it=>{ if(!it.empty){ total++; if(it.done) done++; } }));
+    ctx.fillStyle=C.muted; ctx.font=`500 22px ${FONT}`;
+    ctx.fillText('由 今课 Nowledge 生成', PAD, H-PAD+18);
+    ctx.textAlign='right';
+    ctx.fillText(`${total} 项 · 已完成 ${done}`, W-PAD, H-PAD+18);
+    ctx.textAlign='left';
+
+    // 下载（同步 dataURL，处于用户手势内，最稳妥）
+    const dataURL = canvas.toDataURL('image/png');
+    const a = document.createElement('a');
+    a.href = dataURL; a.download = `今课Nowledge-${data.key}.png`;
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a);
+  }
+
+  return { generate };
+})();
+
+/* ============================== 11.8 AI 服务（OpenAI 兼容） ============================== */
+// 多 AI 配置管理 + 调用 OpenAI 兼容 /v1/chat/completions（支持流式 SSE）。
+// 密钥仅存于本机 localStorage，直接发往用户填写的服务商接口。
+const AIService = (() => {
+  function getAi(){ return State.get().ai; }
+  function list(){ return (getAi().list || []).slice(); }
+  function getActive(){
+    const ai = getAi();
+    if(!ai || !ai.enabled) return null;
+    const found = (ai.list||[]).find(x=>x.id===ai.activeId);
+    return found || null;
+  }
+  function add(cfg){
+    const item = {
+      id: Utils.uid('ai'),
+      name: (cfg.name||'未命名').trim(),
+      baseURL: (cfg.baseURL||'').trim().replace(/\/+$/,''),
+      apiKey: (cfg.apiKey||'').trim(),
+      model: (cfg.model||'').trim(),
+      authHeader: cfg.authHeader || (cfg.auth==='apikey' ? 'api-key' : 'Authorization'),
+      authScheme: (cfg.authScheme != null) ? cfg.authScheme : (cfg.auth==='apikey' ? '' : 'Bearer '),
+      proxy: (cfg.proxy||'').trim(),
+      createdAt: Date.now()
+    };
+    State.set(s=>{ s.ai.list.push(item); if(!s.ai.activeId) s.ai.activeId = item.id; }, 'ai');
+    return item;
+  }
+  function update(id, cfg){
+    State.set(s=>{
+      const it = s.ai.list.find(x=>x.id===id);
+      if(!it) return;
+      if(cfg.name!==undefined) it.name = cfg.name.trim();
+      if(cfg.baseURL!==undefined) it.baseURL = cfg.baseURL.trim().replace(/\/+$/,'');
+      if(cfg.apiKey!==undefined) it.apiKey = cfg.apiKey.trim();
+      if(cfg.model!==undefined) it.model = cfg.model.trim();
+      if(cfg.authHeader!==undefined) it.authHeader = cfg.authHeader;
+      if(cfg.authScheme!==undefined) it.authScheme = cfg.authScheme;
+      if(cfg.proxy!==undefined) it.proxy = (cfg.proxy||'').trim();
+    }, 'ai');
+  }
+  function remove(id){
+    State.set(s=>{
+      s.ai.list = s.ai.list.filter(x=>x.id!==id);
+      if(s.ai.activeId===id) s.ai.activeId = s.ai.list.length ? s.ai.list[0].id : null;
+    }, 'ai');
+  }
+  function setActive(id){ State.set(s=>{ s.ai.activeId = id; }, 'ai'); }
+  function setEnabled(v){ State.set(s=>{ s.ai.enabled = !!v; }, 'ai'); }
+
+  function buildMessages(kind, payload){
+    const sys = {
+      polishAndSplit: '你是作业整理助手。把用户给出的作业内容润色为书面、简洁、条理清晰的中文，并拆分为若干相互独立的要点。每行只输出一条要点，最多 10 条；不要编号、不要引号、不要 JSON、不要 markdown、不要解释。若内容本身已是清单则直接整理。',
+      polish: '你是作业润色助手。请在不改变原意的前提下，把用户给出的这一条作业内容润色得更书面、简洁、易读。只返回润色后的一句文本，不要解释、不要引号、不要 markdown。'
+    }[kind];
+    const user = payload.text;
+    return [ { role:'system', content: sys }, { role:'user', content: user } ];
+  }
+
+  // 调用；传入 onToken 则走流式（返回累积全文），否则返回完整 message.content
+  // cfg 可显式传入一份临时配置（连通性测试用），此时既不读取也不修改全局 State。
+  async function chat({ messages, onToken, temperature=0.4, signal, cfg: override }){
+    const cfg = override || getActive();
+    if(!cfg) throw new Error('未启用或未选择 AI，请先在「设置 → AI 设置」中配置并启用。');
+    if(!cfg.baseURL) throw new Error('当前 AI 缺少 Base URL。');
+    if(!cfg.model) throw new Error('当前 AI 缺少模型名称。');
+    const realUrl = cfg.baseURL + '/chat/completions';
+    let url = realUrl;
+    if(cfg.proxy){
+      url = cfg.proxy.indexOf('{url}') !== -1
+        ? cfg.proxy.replace('{url}', encodeURIComponent(realUrl))
+        : cfg.proxy.replace(/\/?$/, '/') + encodeURIComponent(realUrl);
+    }
+    const authHeader = cfg.authHeader || 'Authorization';
+    const authScheme = (cfg.authScheme != null) ? cfg.authScheme : 'Bearer ';
+    const headers = { 'Content-Type':'application/json' };
+    if(cfg.apiKey) headers[authHeader] = authScheme + cfg.apiKey;
+    const body = { model: cfg.model, messages, temperature, stream: !!onToken };
+
+    let res;
+    try{
+      res = await fetch(url, { method:'POST', headers, body: JSON.stringify(body), signal });
+    }catch(e){
+      if(e && e.name === 'AbortError') throw new Error('请求超时或被取消，请检查网络与代理后重试。');
+      const isProxy = !!cfg.proxy;
+      throw new Error(isProxy
+        ? '请求经代理仍失败（' + (e && e.message ? e.message : e) + '）。请检查代理地址是否可用、能否转发 POST 与请求头。'
+        : '网络/跨域被拦截（Failed to fetch）。多数是浏览器跨域(CORS)限制：该接口未返回允许跨域的响应头。请用「CORS 代理」转发，或改为服务端调用。');
+    }
+    if(!res.ok){
+      let detail = '';
+      try { detail = (await res.text()).slice(0,300); } catch(e){}
+      if(res.status===401) throw new Error('API 密钥无效或缺失（401）。');
+      if(res.status===404) throw new Error('接口路径不存在（404）：请确认 Base URL 含 /v1 且服务商支持 chat/completions。');
+      if(res.status===429) throw new Error('请求过于频繁或被限流（429）。');
+      throw new Error(`请求失败（${res.status}）：${detail || res.statusText}`);
+    }
+
+    if(onToken && res.body){
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder('utf-8');
+      let buf = '', acc = '', sawData = false;
+      while(true){
+        const { done, value } = await reader.read();
+        if(done) break;
+        buf += decoder.decode(value, { stream:true });
+        const lines = buf.split('\n');
+        buf = lines.pop();
+        for(const line of lines){
+          const t = line.trim();
+          if(!t.startsWith('data:')) continue;
+          const data = t.slice(5).trim();
+          if(data==='[DONE]') continue;
+          sawData = true;
+          try{
+            const json = JSON.parse(data);
+            const delta = json.choices && json.choices[0] && json.choices[0].delta;
+            if(delta && delta.content){ acc += delta.content; onToken(delta.content); }
+          }catch(e){ /* 跳过不完整分片 */ }
+        }
+      }
+      // 服务端未走 SSE：把整段当作非流式 JSON 兜底解析
+      if(!sawData && buf){
+        try{
+          const json = JSON.parse(buf);
+          const content = json.choices && json.choices[0] && json.choices[0].message && json.choices[0].message.content;
+          if(content && !acc){ acc = content; onToken(content); }
+        }catch(e){}
+      }
+      return acc;
+    }
+    const json = await res.json();
+    return json.choices && json.choices[0] && json.choices[0].message ? json.choices[0].message.content : '';
+  }
+
+  // 结构化解析：JSON 数组 → 提取 [...] → 逐行降级
+  function parsePoints(raw){
+    let text = (raw||'').trim();
+    if(!text) return [];
+    text = text.replace(/^```(?:json)?\s*/i,'').replace(/\s*```$/i,'').trim();
+    try{ const a=JSON.parse(text); if(Array.isArray(a)) return a.map(x=>String(x).trim()).filter(Boolean); }catch(e){}
+    const m = text.match(/\[[\s\S]*\]/);
+    if(m){ try{ const a=JSON.parse(m[0]); if(Array.isArray(a)) return a.map(x=>String(x).trim()).filter(Boolean); }catch(e){} }
+    return text.split(/\r?\n/).map(l=>l.replace(/^[\s\d]+[.、)]\s*/, '').replace(/^[-•*]\s*/, '').trim()).filter(Boolean);
+  }
+
+  // 分点结果必须是完整结构才能解析，流式没有任何「提前可用」的收益：
+  // 反而多了 SSE 逐块传输、代理缓冲、逐 token 重绘的开销，且卡住时无法收尾。
+  // 改为一次性取回；parsePoints 同时兼容纯行输出与旧版 JSON 数组输出。
+  async function polishAndSplit(text, subject, { signal } = {}){
+    const out = await chat({ messages: buildMessages('polishAndSplit', { text, subject }), signal });
+    return out || '';
+  }
+  async function polish(text, { signal } = {}){
+    const out = await chat({ messages: buildMessages('polish', { text }), signal });
+    return (out||'').trim();
+  }
+  // 用一份（未必已保存的）配置做一次连通性测试，返回模型回复文本。
+  // 关键：全程不触碰 State —— 旧实现会把 __test__ 临时塞进 ai.list 并改写
+  // activeId/enabled，既可能被 debounce 持久化成幽灵配置，也会在并发测试时
+  // 互相覆盖导致 activeId 悬空、AI 整体失效。现在改为显式传 cfg 给 chat()。
+  async function testConnection(cfg){
+    const temp = {
+      baseURL:(cfg.baseURL||'').trim().replace(/\/+$/,''),
+      apiKey:(cfg.apiKey||'').trim(),
+      model:(cfg.model||'').trim(),
+      authHeader:(cfg.authHeader || (cfg.auth==='apikey' ? 'api-key' : 'Authorization')),
+      authScheme:(cfg.authScheme != null ? cfg.authScheme : (cfg.auth==='apikey' ? '' : 'Bearer ')),
+      proxy:(cfg.proxy||'').trim()
+    };
+    if(!temp.baseURL) throw new Error('缺少 Base URL。');
+    if(!temp.model) throw new Error('缺少模型名称。');
+    const ac = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+    const timer = ac ? setTimeout(()=>ac.abort(), 20000) : null;
+    try{
+      const out = await chat({
+        messages: buildMessages('polish', { text:'把“写作业”润色成一句通顺的话。' }),
+        cfg: temp,
+        signal: ac ? ac.signal : undefined
+      });
+      return (out||'').trim() || 'OK';
+    } finally {
+      if(timer) clearTimeout(timer);
+    }
+  }
+
+  return { getActive, list, add, update, remove, setActive, setEnabled,
+           chat, parsePoints, polishAndSplit, polish, testConnection };
+})();
+
 /* ============================== 12. 业务动作 Actions ============================== */
 const Actions = (() => {
   function toggleComplete(subjectId){
@@ -2357,19 +3339,49 @@ const Actions = (() => {
     State.set(()=>{
       const day = State.ensureDay(key);
       const rec = day.assignments[subjectId];
-      rec.completed = !rec.completed;
-      rec.completedAt = rec.completed ? Utils.formatDateLine(new Date()).time.slice(0,5) : null;
+      const items = subjectItems(rec);
+      const allDone = itemsAllDone(items);
+      const now = Utils.formatDateLine(new Date()).time.slice(0,5);
+      items.forEach(it=>{ it.completed = !allDone; it.completedAt = it.completed ? now : null; });
+      rec.items = items;
+      syncLegacyFromItems(rec);
     }, 'toggle');
+    Renderer.renderStatus();
+    Renderer.renderGrid();
+  }
+
+  function toggleItemComplete(subjectId, index){
+    const key = DateEngine.getViewingKey();
+    State.set(()=>{
+      const day = State.ensureDay(key);
+      const rec = day.assignments[subjectId];
+      const items = subjectItems(rec);
+      const it = items[index];
+      if(!it) return;
+      it.completed = !it.completed;
+      it.completedAt = it.completed ? Utils.formatDateLine(new Date()).time.slice(0,5) : null;
+      rec.items = items;
+      syncLegacyFromItems(rec);
+    }, 'toggle-item');
     Renderer.renderStatus();
     Renderer.renderGrid();
   }
 
   function saveAssignmentText(subjectId, text, opts={}){
     const key = DateEngine.getViewingKey();
+    // 先 ensureDay 确保日记录存在，再在 State.set 内修改
+    const day = State.ensureDay(key);
     State.set(()=>{
-      const day = State.ensureDay(key);
-      day.assignments[subjectId].text = text;
-      day.assignments[subjectId].updatedAt = Date.now();
+      const rec = day.assignments[subjectId];
+      if(rec.items && rec.items.length){
+        // 已拆分为多子项：沿用/清空作用于第 1 项，其余保持不变
+        rec.items[0].text = text;
+        rec.items[0].updatedAt = Date.now();
+      } else {
+        rec.text = text;
+      }
+      rec.updatedAt = Date.now();
+      syncLegacyFromItems(rec);
     }, 'edit');
     // 输入过程中绝不重建卡片 DOM：保留 textarea、光标、选区和滚动位置。
     if(opts.render !== false){
@@ -2389,8 +3401,9 @@ const Actions = (() => {
       const day = State.ensureDay(key);
       Object.keys(day.assignments).forEach(sid=>{
         const src = yDay.assignments[sid];
-        if(src && src.text && src.text.trim()){
-          day.assignments[sid].text = src.text;
+        const has = src && (src.items ? src.items.some(i=>i.text && i.text.trim()) : (src.text && src.text.trim()));
+        if(has){
+          day.assignments[sid] = JSON.parse(JSON.stringify(src));
           day.assignments[sid].updatedAt = Date.now();
         }
       });
@@ -2407,17 +3420,39 @@ const Actions = (() => {
     const yKey = Utils.addDays(key, -1);
     const yDay = State.get().days[yKey];
     const src = yDay && yDay.assignments[subjectId];
-    if(!src || !src.text || !src.text.trim()){ Toast.show('该学科昨天没有作业'); return; }
-    saveAssignmentText(subjectId, src.text);
+    const has = src && (src.items ? src.items.some(i=>i.text && i.text.trim()) : (src.text && src.text.trim()));
+    if(!has){ Toast.show('该学科昨天没有作业'); return; }
+    State.set(()=>{
+      const day = State.ensureDay(key);
+      day.assignments[subjectId] = JSON.parse(JSON.stringify(src));
+      day.assignments[subjectId].updatedAt = Date.now();
+      syncLegacyFromItems(day.assignments[subjectId]);
+    }, 'copy');
+    Renderer.renderGrid(); Renderer.renderStatus(); Renderer.renderOnboarding();
     Toast.show('已沿用昨天的内容');
   }
 
   function clearAssignment(subjectId){
     const day = State.ensureDay(DateEngine.getViewingKey());
-    const prev = day.assignments[subjectId].text;
-    if(!prev || !prev.trim()){ saveAssignmentText(subjectId, ''); return; }
-    saveAssignmentText(subjectId, '');
-    Toast.show('已清空该学科作业', { undo: ()=>saveAssignmentText(subjectId, prev) });
+    const rec = day.assignments[subjectId];
+    const prev = JSON.parse(JSON.stringify(rec));
+    const hasContent = rec.items ? rec.items.some(i=>i.text && i.text.trim()) : (rec.text && rec.text.trim());
+    if(!hasContent){ saveAssignmentText(subjectId, ''); return; }
+    State.set(()=>{
+      const blank = JSON.parse(JSON.stringify(prev));
+      if(blank.items && blank.items.length){
+        blank.items.forEach(i=>{ i.text=''; i.completed=false; i.completedAt=null; });
+      } else {
+        blank.text='';
+      }
+      day.assignments[subjectId] = blank;
+      syncLegacyFromItems(day.assignments[subjectId]);
+    }, 'clear');
+    Renderer.renderGrid(); Renderer.renderStatus(); Renderer.renderOnboarding();
+    Toast.show('已清空该学科作业', { undo: ()=>{
+      State.set(()=>{ day.assignments[subjectId] = prev; }, 'undo');
+      Renderer.renderGrid(); Renderer.renderStatus(); Renderer.renderOnboarding();
+    }});
   }
 
   function saveNote(text){
@@ -2448,7 +3483,7 @@ const Actions = (() => {
     Renderer.renderThemeUI();
   }
 
-  return { toggleComplete, saveAssignmentText, copyYesterday, copySubjectFromYesterday,
+  return { toggleComplete, toggleItemComplete, saveAssignmentText, copyYesterday, copySubjectFromYesterday,
            clearAssignment, saveNote, nextQuote, goToDate, goRelative, goToday, toggleMode, cycleTheme };
 })();
 
@@ -2465,10 +3500,12 @@ const CardInteraction = (() => {
     Renderer.els.grid.addEventListener('click', (e)=>{
       const menuBtn = e.target.closest('.card__menu-btn');
       const checkBtn = e.target.closest('.card__check');
+      const itemCheck = e.target.closest('.card__item-check');
       const card = e.target.closest('.card');
       if(!card) return;
       const subjectId = card.dataset.subjectId;
       if(menuBtn){ e.stopPropagation(); openCardMenu(menuBtn, subjectId); return; }
+      if(itemCheck){ e.stopPropagation(); Actions.toggleItemComplete(subjectId, Number(itemCheck.dataset.item)); return; }
       if(checkBtn){ e.stopPropagation(); Actions.toggleComplete(subjectId); return; }
       if(State.get().settings.mode === 'edit'){ openEditDialog(subjectId); }
     });
@@ -2528,62 +3565,208 @@ const CardInteraction = (() => {
     closeMenu();
     const day = Renderer.currentDayRecord();
     const rec = day.assignments[subjectId];
+    let items = subjectItems(rec).map(i=>({text:i.text||'', completed:!!i.completed, completedAt:i.completedAt||null}));
     const yKey = Utils.addDays(DateEngine.getViewingKey(), -1);
     const yDay = State.get().days[yKey];
-    const hasYesterday = yDay && yDay.assignments[subjectId] && yDay.assignments[subjectId].text.trim();
+    const yRec = yDay && yDay.assignments[subjectId];
+    const hasYesterday = yRec && (yRec.items ? yRec.items.some(i=>i.text&&i.text.trim()) : (yRec.text&&yRec.text.trim()));
 
     const wrap = document.createElement('div');
     wrap.innerHTML = `
-      <div class="field">
-        <textarea class="field__textarea" id="assignInput" data-autofocus placeholder="输入今天的作业内容…支持换行"></textarea>
-        <div class="field__save-state" id="saveState">已保存</div>
+      <div class="ai-assist" id="aiAssist">
+        <div class="ai-assist__head" id="aiAssistHead">
+          <span class="ai-assist__title">✨ AI 助手</span>
+          <button class="ai-assist__toggle" id="aiAssistToggle" type="button">展开</button>
+        </div>
+        <div class="ai-assist__body" id="aiAssistBody" hidden>
+          <textarea class="field__textarea ai-assist__input" id="aiInput" placeholder="把一大段作业内容粘到这里，AI 会润色并自动拆成多个要点。"></textarea>
+          <div class="ai-assist__btns">
+            <button class="btn btn--primary" id="aiSplitBtn" type="button">润色并分点</button>
+            <button class="btn btn--secondary" id="aiFillBtn" type="button">填入当前内容</button>
+          </div>
+          <div class="ai-assist__status" id="aiStatus" hidden></div>
+        </div>
       </div>
-      <div class="toggle-row">
-        <div><div class="toggle-row__label">标记为已完成</div></div>
-        <button class="switch" id="doneSwitch" role="switch" aria-checked="${rec.completed}"></button>
+      <div class="split-control">
+        <span class="split-control__label">拆分为独立项数</span>
+        <div class="stepper">
+          <button class="stepper__btn" id="splitMinus" type="button" aria-label="减少项数">−</button>
+          <span class="stepper__value" id="splitValue">${items.length}</span>
+          <button class="stepper__btn" id="splitPlus" type="button" aria-label="增加项数">+</button>
+        </div>
       </div>
+      <div class="items-editor" id="itemsEditor"></div>
     `;
-    const ta = wrap.querySelector('#assignInput');
-    ta.value = rec.text || '';
-    const resizeEditor = ()=>{
-      ta.style.height='auto';
-      ta.style.height=Math.max(140,Math.min(420,ta.scrollHeight))+'px';
-    };
-    requestAnimationFrame(resizeEditor);
-    const saveState = wrap.querySelector('#saveState');
-    const doneSwitch = wrap.querySelector('#doneSwitch');
+    const itemsEditor = wrap.querySelector('#itemsEditor');
+    const splitValue = wrap.querySelector('#splitValue');
+    const debouncedRender = Utils.debounce(()=>{
+      Renderer.renderGrid(); Renderer.renderStatus(); Renderer.renderOnboarding();
+    }, 200);
 
-    const debouncedSave = Utils.debounce(()=>{
-      const caretStart=ta.selectionStart, caretEnd=ta.selectionEnd, scrollTop=ta.scrollTop;
-      Actions.saveAssignmentText(subjectId, ta.value, {render:false});
-      ta.selectionStart=caretStart; ta.selectionEnd=caretEnd; ta.scrollTop=scrollTop;
-      saveState.classList.add('is-visible');
-      setTimeout(()=>saveState.classList.remove('is-visible'), 1200);
-    }, 450);
-    ta.addEventListener('input', ()=>{ resizeEditor(); debouncedSave(); });
-    ta.addEventListener('keydown', e=>{
-      if((e.metaKey||e.ctrlKey) && e.key==='Enter'){
-        e.preventDefault();
-        debouncedSave.flush();
-        Renderer.renderGrid(); Renderer.renderStatus(); Renderer.renderOnboarding();
-        Dialog.close();
-      }
+    function saveItems(){
+      State.set(()=>{
+        const d = Renderer.currentDayRecord();
+        const r = d.assignments[subjectId];
+        r.items = items.map(i=>({text:i.text||'', completed:!!i.completed, completedAt:i.completedAt||null}));
+        syncLegacyFromItems(r);
+      }, 'edit');
+      debouncedRender();
+    }
+
+    function renderItems(){
+      itemsEditor.innerHTML = items.map((it, idx)=>`
+        <div class="item-edit${it.completed?' is-done':''}" data-idx="${idx}">
+          <div class="item-edit__head">
+            <span class="item-edit__no">${idx+1}</span>
+            <label class="item-edit__done"><input type="checkbox" data-idx="${idx}" ${it.completed?'checked':''}> 本项完成</label>
+            <button class="item-edit__ai" data-ai-polish="${idx}" type="button" title="AI 润色这条">✨ 润色</button>
+          </div>
+          <textarea class="field__textarea item-edit__input" data-idx="${idx}" placeholder="第 ${idx+1} 项内容…"${idx===0?' data-autofocus':''}>${Utils.escapeHtml(it.text||'')}</textarea>
+        </div>`).join('');
+      itemsEditor.querySelectorAll('.item-edit__input').forEach(ta=>{
+        const idx = Number(ta.dataset.idx);
+        const resize = ()=>{ ta.style.height='auto'; ta.style.height=Math.max(56,Math.min(260,ta.scrollHeight))+'px'; };
+        requestAnimationFrame(resize);
+        ta.addEventListener('input', ()=>{ resize(); items[idx].text = ta.value; saveItems(); });
+      });
+      itemsEditor.querySelectorAll('.item-edit__done input').forEach(cb=>{
+        cb.addEventListener('change', ()=>{
+          const idx = Number(cb.dataset.idx);
+          items[idx].completed = cb.checked;
+          items[idx].completedAt = cb.checked ? Utils.formatDateLine(new Date()).time.slice(0,5) : null;
+          itemsEditor.querySelectorAll('.item-edit')[idx].classList.toggle('is-done', cb.checked);
+          saveItems();
+        });
+      });
+    }
+
+    wrap.querySelector('#splitMinus').addEventListener('click', ()=>{
+      if(items.length>1){ items.pop(); splitValue.textContent = items.length; renderItems(); saveItems(); }
+    });
+    wrap.querySelector('#splitPlus').addEventListener('click', ()=>{
+      if(items.length<10){ items.push({text:'',completed:false,completedAt:null}); splitValue.textContent = items.length; renderItems(); saveItems(); }
     });
 
-    doneSwitch.addEventListener('click', ()=>{
-      Actions.toggleComplete(subjectId);
-      const nowRec = Renderer.currentDayRecord().assignments[subjectId];
-      doneSwitch.setAttribute('aria-checked', nowRec.completed);
-      // 仅更新状态，不重建当前编辑器。
+    renderItems();
+
+    // —— AI 助手 ——
+    const aiAssist = wrap.querySelector('#aiAssist');
+    const aiBody = wrap.querySelector('#aiAssistBody');
+    const aiToggle = wrap.querySelector('#aiAssistToggle');
+    const aiInput = wrap.querySelector('#aiInput');
+    const aiStatus = wrap.querySelector('#aiStatus');
+    const aiSplitBtn = wrap.querySelector('#aiSplitBtn');
+    const aiFillBtn = wrap.querySelector('#aiFillBtn');
+
+    function aiSetStatus(msg, kind){
+      aiStatus.hidden = !msg;
+      aiStatus.textContent = msg || '';
+      aiStatus.className = 'ai-assist__status' + (kind?(' is-'+kind):'');
+    }
+    function aiActive(){ return AIService.getActive(); }
+    function aiNoAI(){
+      aiSetStatus('未启用 AI：请到「设置 → AI 设置」添加并启用一个 AI。', 'error');
+    }
+    if(!aiActive()){
+      aiAssist.classList.add('is-disabled');
+      aiSetStatus('未启用或未选择 AI，下方按钮暂不可用。', 'error');
+    }
+    aiToggle.addEventListener('click', ()=>{
+      const show = aiBody.hidden;
+      aiBody.hidden = !show;
+      aiToggle.textContent = show ? '收起' : '展开';
+    });
+    aiFillBtn.addEventListener('click', ()=>{
+      aiBody.hidden = false; aiToggle.textContent='收起';
+      aiInput.value = items.map(i=>i.text).filter(t=>t&&t.trim()).join('\n');
+      aiSetStatus('');
+    });
+
+    // 等待反馈由本地计时器驱动，与网络/代理是否吐字无关：即使模型无输出或代理缓冲，
+    // 按钮和状态栏也每秒都在变；60s 自动超时，运行期间按钮变成「取消」可随时中止。
+    const AI_TIMEOUT = 60000;
+    async function aiRun(btn, fn){
+      const prev = btn.textContent;
+      const started = Date.now();
+      const ac = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+      let cancelled = false, done = false;
+      const paint = (sec)=>{
+        // 第一秒先禁用按钮，避免手抖双击把刚发起的请求直接取消掉
+        btn.disabled = sec < 1;
+        btn.textContent = sec < 1 ? '处理中…' : '取消 · ' + sec + 's';
+        aiSetStatus('AI 正在润色并分点…（已等待 ' + sec + 's' + (sec < 1 ? '' : '，点上方按钮可取消') + '）', '');
+      };
+      paint(0);
+      const ticker = setInterval(()=>{ if(!done) paint(Math.floor((Date.now()-started)/1000)); }, 1000);
+      const guard = setTimeout(()=>{ if(ac) ac.abort(); }, AI_TIMEOUT);
+      const onCancel = ()=>{ if(done) return; cancelled = true; if(ac) ac.abort(); };
+      btn.addEventListener('click', onCancel);
+      try{
+        await fn(ac ? ac.signal : undefined);
+      }catch(e){
+        if(cancelled) aiSetStatus('已取消。', '');
+        else if(ac && ac.signal.aborted) aiSetStatus('AI 请求超时（60s）：请检查网络、代理，或换用更快的模型。', 'error');
+        else aiSetStatus('AI 出错：' + (e && e.message ? e.message : e), 'error');
+      }finally{
+        done = true;
+        clearInterval(ticker); clearTimeout(guard);
+        btn.removeEventListener('click', onCancel);
+        btn.disabled = false; btn.textContent = prev;
+      }
+    }
+
+    let aiSplitRunning = false;
+    aiSplitBtn.addEventListener('click', ()=>{
+      if(aiSplitRunning) return; // 运行期间的点击由 aiRun 里的「取消」接管
+      aiSplitRunning = true;
+      aiRun(aiSplitBtn, async (signal)=>{
+        const cfg = aiActive(); if(!cfg){ aiNoAI(); return; }
+        const text = aiInput.value.trim();
+        if(!text){ aiSetStatus('请先在上方输入或粘贴作业内容。', 'error'); return; }
+        const result = await AIService.polishAndSplit(text, subjectName(subjectId), { signal });
+        const points = (result||'').trim() ? AIService.parsePoints(result) : [];
+        if(!points.length){ aiSetStatus('AI 未返回有效要点，请重试或调整内容。', 'error'); return; }
+        const truncated = points.length > 10;
+        if(truncated) points.length = 10;
+        items = points.map(p=>({text:p, completed:false, completedAt:null}));
+        splitValue.textContent = items.length;
+        renderItems(); saveItems();
+        aiSetStatus('已生成 ' + items.length + ' 项要点' + (truncated ? '（超出 10 项的部分已截取）' : '') + '。', 'ok');
+      }).finally(()=>{ aiSplitRunning = false; });
+    });
+
+    // 单条润色（事件委托在 itemsEditor 上，renderItems 重渲染不影响）
+    itemsEditor.addEventListener('click', (e)=>{
+      const b = e.target.closest('[data-ai-polish]'); if(!b) return;
+      const idx = Number(b.dataset.aiPolish);
+      const src = (items[idx].text||'').trim();
+      if(!src){ Toast.show('这条内容为空，无法润色'); return; }
+      const cfg = aiActive(); if(!cfg){ Toast.show('请先在设置中启用并选择 AI'); return; }
+      const prevPolish = b.textContent;
+      const ac = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+      const guard = ac ? setTimeout(()=>ac.abort(), 30000) : null;
+      b.disabled = true; b.textContent = '润色中…';
+      AIService.polish(src, { signal: ac ? ac.signal : undefined }).then(out=>{
+        const polished = (out||'').trim();
+        if(!polished){ Toast.show('AI 未返回润色结果'); return; }
+        items[idx].text = polished;
+        const ta = itemsEditor.querySelector('.item-edit__input[data-idx="'+idx+'"]');
+        if(ta){ ta.value = polished; ta.style.height='auto'; ta.style.height=Math.max(56,Math.min(260,ta.scrollHeight))+'px'; }
+        saveItems();
+        Toast.show('已润色');
+      }).catch(err=>{ Toast.show('AI 出错：' + (err&&err.message?err.message:err)); })
+        .finally(()=>{ if(guard) clearTimeout(guard); b.disabled=false; b.textContent=prevPolish; });
     });
 
     const actions = [
-      {label:'完成', variant:'primary', onClick:()=>{ debouncedSave.flush(); Renderer.renderGrid(); Renderer.renderStatus(); Renderer.renderOnboarding(); Dialog.close(); }}
+      {label:'完成', variant:'primary', onClick:()=>{ saveItems(); Dialog.close(); }}
     ];
     if(hasYesterday){
       actions.unshift({label:'沿用昨天', align:'left', onClick:()=>{
-        ta.value = yDay.assignments[subjectId].text;
-        debouncedSave.flush();
+        const ys = yRec.items ? yRec.items : [{text:yRec.text||'',completed:false,completedAt:null}];
+        items = ys.map(i=>({text:i.text||'',completed:!!i.completed,completedAt:i.completedAt||null}));
+        splitValue.textContent = items.length;
+        renderItems(); saveItems();
       }});
     }
 
@@ -2591,7 +3774,7 @@ const CardInteraction = (() => {
       title: subjectName(subjectId),
       bodyNode: wrap,
       actions,
-      onClose: ()=>{ debouncedSave.flush(); }
+      onClose: ()=>saveItems()
     });
   }
 
@@ -2624,10 +3807,22 @@ const SettingsPanel = (() => {
         <div class="field__label">管理学科</div>
         <button class="btn" id="openSubjectsBtn" style="width:100%;justify-content:center;">学科与顺序</button>
       </div>
+      <div class="field" style="margin-top:4px;">
+        <div class="field__label">AI 助手</div>
+        <button class="btn" id="openAIBtn" style="width:100%;justify-content:center;">AI 设置（API 与润色分点）</button>
+      </div>
       <div class="field">
         <div class="field__label">自定义快捷键</div>
         <div id="shortcutEditor" style="display:flex;flex-direction:column;gap:6px;"></div>
         <div class="field__hint">支持单键（如 A、M）；Esc / Enter / 方向键已保留，不可重映射。</div>
+      </div>
+      <div class="field">
+        <div class="field__label">布局偏好记忆</div>
+        <div class="field__hint" style="color:var(--ink-soft);font-size:12px;line-height:1.6;">
+          生成布局后，按下 <kbd>Alt</kbd>+<kbd>L</kbd> 可将当前列数/字号「记忆」为该场景的默认值。<br>
+          下次打开同一场景时，系统将优先沿用你保存的偏好，而非自动检测。刷新页面后记忆失效。
+        </div>
+        <button class="btn btn--secondary" id="clearPrefBtn" style="margin-top:8px;width:100%;justify-content:center;">清除布局记忆</button>
       </div>
       <div class="field">
         <div class="field__label">考试倒计时</div>
@@ -2649,34 +3844,6 @@ const SettingsPanel = (() => {
         <div class="field__hint">历史记录至少保留 30 天，实际保留最近 ${HISTORY_KEEP_DAYS} 天。</div>
       </div>
     `;
-    Dialog.open({ title:'设置', bodyNode: wrap, wide:true });
-
-    const themeSeg = wrap.querySelector('#themeSeg');
-    function syncSeg(){
-      themeSeg.querySelectorAll('button').forEach(b=>b.classList.toggle('is-active', b.dataset.v===State.get().settings.theme));
-    }
-    syncSeg();
-    themeSeg.addEventListener('click', e=>{
-      const b = e.target.closest('button'); if(!b) return;
-      State.set(s=>{ s.settings.theme = b.dataset.v; }, 'settings');
-      Renderer.renderThemeUI(); syncSeg();
-    });
-
-    const autoSwitch = wrap.querySelector('#autoStartSwitch');
-    autoSwitch.setAttribute('aria-checked', s.autoStartNext);
-    autoSwitch.addEventListener('click', ()=>{
-      State.set(st=>{ st.settings.autoStartNext = !st.settings.autoStartNext; }, 'settings');
-      autoSwitch.setAttribute('aria-checked', State.get().settings.autoStartNext);
-    });
-    const soundSwitch = wrap.querySelector('#soundSwitch');
-    soundSwitch.setAttribute('aria-checked', s.soundEnabled);
-    soundSwitch.addEventListener('click', ()=>{
-      State.set(st=>{ st.settings.soundEnabled = !st.settings.soundEnabled; }, 'settings');
-      soundSwitch.setAttribute('aria-checked', State.get().settings.soundEnabled);
-      FocusTimer.updateUI();
-    });
-
-    wrap.querySelector('#openSubjectsBtn').addEventListener('click', SubjectManager.open);
 
     // — 快捷键编辑器 —
     const RESERVERD_KEYS = new Set(['escape','enter','arrowup','arrowdown','arrowleft','arrowright','tab','space','delete','backspace','shift','control','alt','meta']);
@@ -2717,6 +3884,7 @@ const SettingsPanel = (() => {
               kbd.classList.remove('is-listening');
               return;
             }
+            // 检查是否被其他条目占用
             const conflict = SHORTCUT_DEF.find(d=>d.key!==targetKey && shortcuts[d.key]===newKey);
             if(conflict){
               Toast.show(`按键 "${newKey.toUpperCase()}" 已被「${conflict.action}」占用`);
@@ -2734,7 +3902,45 @@ const SettingsPanel = (() => {
       });
     }
     renderShortcutEditor();
-    State.subscribe((kind)=>{ if(kind==='settings') renderShortcutEditor(); });
+
+    const unsubscribeSettings = State.subscribe((kind)=>{
+      if(kind==='settings') {
+        renderShortcutEditor();
+      }
+    });
+
+    // 关闭设置面板时取消订阅（使用Dialog.open的onClose回调）
+    Dialog.open({ title:'设置', bodyNode: wrap, wide:true, onClose: unsubscribeSettings });
+
+    const themeSeg = wrap.querySelector('#themeSeg');
+    function syncSeg(){
+      themeSeg.querySelectorAll('button').forEach(b=>b.classList.toggle('is-active', b.dataset.v===State.get().settings.theme));
+    }
+    syncSeg();
+    themeSeg.addEventListener('click', e=>{
+      const b = e.target.closest('button'); if(!b) return;
+      State.set(s=>{ s.settings.theme = b.dataset.v; }, 'settings');
+      Renderer.renderThemeUI(); syncSeg();
+    });
+
+    const autoSwitch = wrap.querySelector('#autoStartSwitch');
+    autoSwitch.setAttribute('aria-checked', s.autoStartNext);
+    autoSwitch.addEventListener('click', ()=>{
+      State.set(st=>{ st.settings.autoStartNext = !st.settings.autoStartNext; }, 'settings');
+      autoSwitch.setAttribute('aria-checked', State.get().settings.autoStartNext);
+    });
+    const soundSwitch = wrap.querySelector('#soundSwitch');
+    soundSwitch.setAttribute('aria-checked', s.soundEnabled);
+    soundSwitch.addEventListener('click', ()=>{
+      State.set(st=>{ st.settings.soundEnabled = !st.settings.soundEnabled; }, 'settings');
+      soundSwitch.setAttribute('aria-checked', State.get().settings.soundEnabled);
+      FocusTimer.updateUI();
+    });
+
+    wrap.querySelector('#openSubjectsBtn').addEventListener('click', SubjectManager.open);
+    wrap.querySelector('#openAIBtn').addEventListener('click', AISettings.open);
+
+    // 关闭设置面板时取消订阅（使用Dialog.open的onClose回调）
 
     function renderExams(){
       const list = wrap.querySelector('#examList');
@@ -2803,6 +4009,190 @@ const SettingsPanel = (() => {
           Toast.show('已清空所有数据');
         }
       });
+    });
+
+    // — 清除布局记忆 —
+    wrap.querySelector('#clearPrefBtn').addEventListener('click', ()=>{
+      LayoutEngine.clearPrefs(false);
+      LayoutEngine.clearPrefs(true);
+      Toast.show('布局记忆已清除');
+    });
+  }
+  return { open };
+})();
+
+/* ============================== 14.5 AI 设置页 ============================== */
+const AISettings = (() => {
+  function open(){
+    const wrap = document.createElement('div');
+    wrap.innerHTML = `
+      <div class="toggle-row">
+        <div><div class="toggle-row__label">启用 AI 功能</div><div class="field__hint">关闭后，编辑作业中的 AI 按钮将不可用。</div></div>
+        <button class="switch" id="aiEnabled" role="switch" aria-label="启用 AI 功能"></button>
+      </div>
+      <div class="field__hint ai-hint">密钥仅保存在本机浏览器，直接发往你填写的服务商接口（OpenAI 兼容 /v1/chat/completions）。若浏览器提示跨域(CORS)错误，请使用支持 CORS 的接口或本地代理（如 LM Studio / Ollama / vLLM 已默认开启）。请妥善保管密钥。</div>
+      <div class="ai-section">
+        <div class="field__label">已保存的 AI</div>
+        <div class="ai-list" id="aiList"></div>
+      </div>
+      <div class="ai-form" id="aiForm" hidden>
+        <div class="field__label" id="aiFormTitle">添加 AI</div>
+        <input class="field__input" id="aiName" placeholder="名称，如 我的OpenAI / 本地LM">
+        <input class="field__input" id="aiBase" placeholder="Base URL，如 https://api.openai.com/v1">
+        <input class="field__input" id="aiModel" placeholder="模型，如 gpt-4o-mini">
+        <input class="field__input" id="aiKey" type="password" placeholder="API Key（本地服务可留空）" autocomplete="off">
+        <div style="display:flex;gap:8px;align-items:center;">
+          <label class="field__label" style="margin:0;white-space:nowrap;">认证方式</label>
+          <select class="field__input" id="aiAuth" style="flex:1;">
+            <option value="bearer">Authorization: Bearer（OpenAI 兼容）</option>
+            <option value="apikey">api-key</option>
+          </select>
+        </div>
+        <input class="field__input" id="aiProxy" placeholder="CORS 代理（可选）：如 https://你的代理/?url={url}">
+        <div class="field__hint">部分厂商的接口不允许浏览器跨域，会报 “Failed to fetch”。此时填一个 CORS 代理把请求转发出去即可；{url} 会被替换成实际地址。</div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn--primary" id="aiSave">保存</button>
+          <button class="btn" id="aiTestConn" type="button">测试连接</button>
+          <button class="btn" id="aiCancel">取消</button>
+        </div>
+      </div>
+      <!-- 状态行放在表单外：保存后表单会隐藏，自动测试连接的结果必须仍然可见 -->
+      <div class="ai-status-line" id="aiFormStatus" hidden style="margin-top:8px;"></div>
+      <button class="btn" id="aiAddBtn" style="margin-top:10px;width:100%;justify-content:center;">+ 添加 AI</button>
+    `;
+    Dialog.open({ title:'AI 设置', bodyNode: wrap, wide:true });
+
+    const enabledSwitch = wrap.querySelector('#aiEnabled');
+    enabledSwitch.setAttribute('aria-checked', !!State.get().ai.enabled);
+    enabledSwitch.addEventListener('click', ()=>{
+      AIService.setEnabled(!State.get().ai.enabled);
+      enabledSwitch.setAttribute('aria-checked', !!State.get().ai.enabled);
+    });
+
+    const listEl = wrap.querySelector('#aiList');
+    const form = wrap.querySelector('#aiForm');
+    const formTitle = wrap.querySelector('#aiFormTitle');
+    const nameI = wrap.querySelector('#aiName');
+    const baseI = wrap.querySelector('#aiBase');
+    const modelI = wrap.querySelector('#aiModel');
+    const keyI = wrap.querySelector('#aiKey');
+    const authI = wrap.querySelector('#aiAuth');
+    const proxyI = wrap.querySelector('#aiProxy');
+    const formStatus = wrap.querySelector('#aiFormStatus');
+    let editingId = null;
+    let testSeq = 0; // 只展示最后一次测试的结果，避免并发测试互相覆盖状态文案
+
+    function renderList(){
+      const ai = State.get().ai;
+      if(!ai.list.length){ listEl.innerHTML = '<div class="ai-empty">还没有保存任何 AI，点下方“添加 AI”。</div>'; return; }
+      listEl.innerHTML = ai.list.map(c=>`
+        <div class="ai-card${c.id===ai.activeId?' is-active':''}">
+          <div class="ai-card__top">
+            <span class="ai-card__name">${Utils.escapeHtml(c.name)}</span>
+            ${c.id===ai.activeId?'<span class="ai-card__badge">当前使用</span>':''}
+          </div>
+          <div class="ai-card__meta">${Utils.escapeHtml(c.model||'未填模型')} · ${Utils.escapeHtml(c.baseURL||'未填地址')}</div>
+          <div class="ai-card__actions">
+            ${c.id===ai.activeId?'':'<button class="btn btn--sm" data-act="use" data-id="'+c.id+'">选用</button>'}
+            <button class="btn btn--sm" data-act="edit" data-id="${c.id}">编辑</button>
+            <button class="btn btn--sm" data-act="test" data-id="${c.id}">测试</button>
+            <button class="btn btn--sm btn--danger" data-act="del" data-id="${c.id}">删除</button>
+          </div>
+        </div>`).join('');
+    }
+    renderList();
+
+    listEl.addEventListener('click', async (e)=>{
+      const b = e.target.closest('[data-act]'); if(!b) return;
+      const id = b.dataset.id, act = b.dataset.act;
+      if(act==='use'){ AIService.setActive(id); renderList(); Toast.show('已切换 AI'); }
+      else if(act==='edit'){
+        editingId = id; const c = AIService.list().find(x=>x.id===id);
+        form.hidden=false; formTitle.textContent='编辑 AI';
+        nameI.value=c.name; baseI.value=c.baseURL; modelI.value=c.model; keyI.value=c.apiKey;
+        authI.value = (c.authHeader === 'api-key' || c.auth === 'apikey') ? 'apikey' : 'bearer';
+        proxyI.value = c.proxy || '';
+        formStatus.hidden=true;
+      }
+      else if(act==='del'){
+        const c = AIService.list().find(x=>x.id===id);
+        Dialog.confirm({ title:'删除 AI', message:'确定删除「'+Utils.escapeHtml(c.name)+'」？', confirmLabel:'删除', danger:true,
+          onConfirm:()=>{ AIService.remove(id); renderList(); Toast.show('已删除'); } });
+      }
+      else if(act==='test'){ await testAI(id, b); }
+    });
+
+    async function testAI(id, btn){
+      const c = AIService.list().find(x=>x.id===id);
+      if(!c){ Toast.show('该配置已不存在，请重新打开设置'); return; }
+      const prev = btn.textContent; btn.disabled=true; btn.textContent='测试中…';
+      try{
+        // 用已保存的认证头：add/update 只存 authHeader/authScheme，不存 auth 字段，
+        // 从 c.auth 反推会永远得到 Bearer，令 api-key 类服务（如 MiMo）误报 401。
+        const authCfg = {
+          authHeader: c.authHeader || 'Authorization',
+          authScheme: (c.authScheme != null) ? c.authScheme : (c.auth==='apikey' ? '' : 'Bearer ')
+        };
+        const out = await AIService.testConnection({ baseURL:c.baseURL, apiKey:c.apiKey, model:c.model, ...authCfg, proxy:c.proxy||'' });
+        Toast.show('连接成功：' + (typeof out==='string' ? out.slice(0,24) : 'OK'));
+      }catch(err){
+        Toast.show('测试失败：' + (err&&err.message?err.message:err));
+      }finally{ btn.disabled=false; btn.textContent=prev; }
+    }
+
+    // 表单内“测试连接”：用当前填写（未必已保存）的配置直接测
+    wrap.querySelector('#aiTestConn').addEventListener('click', async ()=>{
+      const seq = ++testSeq; // 本次点击作废旧测试的在途结果
+      const base=baseI.value.trim(), model=modelI.value.trim(), proxy=proxyI.value.trim();
+      if(!base){ formStatus.hidden=false; formStatus.textContent='请先填写 Base URL'; formStatus.className='ai-status-line is-error'; return; }
+      if(!model){ formStatus.hidden=false; formStatus.textContent='请先填写模型名称'; formStatus.className='ai-status-line is-error'; return; }
+      const authCfg = authI.value==='apikey' ? { authHeader:'api-key', authScheme:'' } : { authHeader:'Authorization', authScheme:'Bearer ' };
+      formStatus.hidden=false; formStatus.textContent='测试中…'; formStatus.className='ai-status-line';
+      try{
+        const out = await AIService.testConnection({ baseURL:base, apiKey:keyI.value, model, ...authCfg, proxy });
+        if(seq!==testSeq) return;
+        formStatus.hidden=false;
+        formStatus.textContent='连接成功：' + (typeof out==='string'?out.slice(0,40):'OK');
+        formStatus.className='ai-status-line is-ok';
+      }catch(err){
+        if(seq!==testSeq) return;
+        formStatus.hidden=false;
+        formStatus.textContent='连接失败：' + (err&&err.message?err.message:err);
+        formStatus.className='ai-status-line is-error';
+      }
+    });
+
+    wrap.querySelector('#aiAddBtn').addEventListener('click', ()=>{
+      testSeq++;
+      editingId=null; form.hidden=false; formTitle.textContent='添加 AI';
+      nameI.value=''; baseI.value='https://api.openai.com/v1'; modelI.value='gpt-4o-mini'; keyI.value='';
+      authI.value='bearer'; proxyI.value='';
+      formStatus.hidden=true; nameI.focus();
+    });
+    wrap.querySelector('#aiCancel').addEventListener('click', ()=>{ testSeq++; form.hidden=true; editingId=null; formStatus.hidden=true; });
+    wrap.querySelector('#aiSave').addEventListener('click', async ()=>{
+      const seq = ++testSeq; // 保存后的自动测试也参与序号，避免与手动测试互相覆盖
+      const name=nameI.value.trim(), base=baseI.value.trim(), model=modelI.value.trim(), key=keyI.value, auth=authI.value, proxy=proxyI.value.trim();
+      if(!name){ formStatus.hidden=false; formStatus.textContent='请填写名称'; formStatus.className='ai-status-line is-error'; return; }
+      if(!base){ formStatus.hidden=false; formStatus.textContent='请填写 Base URL'; formStatus.className='ai-status-line is-error'; return; }
+      const authCfg = auth==='apikey' ? { authHeader:'api-key', authScheme:'' } : { authHeader:'Authorization', authScheme:'Bearer ' };
+      if(editingId){ AIService.update(editingId, {name, baseURL:base, model, apiKey:key, auth, proxy, ...authCfg}); Toast.show('已更新'); }
+      else { AIService.add({name, baseURL:base, model, apiKey:key, auth, proxy, ...authCfg}); Toast.show('已添加'); }
+      form.hidden=true; editingId=null; renderList();
+      // 状态行已移到表单外，保存后依然可见
+      formStatus.hidden=false; formStatus.textContent='保存成功，正在自动测试连接…'; formStatus.className='ai-status-line';
+      try{
+        const out = await AIService.testConnection({ baseURL:base, apiKey:key, model, ...authCfg, proxy });
+        if(seq!==testSeq) return;
+        formStatus.hidden=false;
+        formStatus.textContent='✅ 连接成功：' + (typeof out==='string'?out.slice(0,40):'OK');
+        formStatus.className='ai-status-line is-ok';
+      }catch(err){
+        if(seq!==testSeq) return;
+        formStatus.hidden=false;
+        formStatus.textContent='⚠️ 保存成功，但连接测试失败：' + (err&&err.message?err.message:err);
+        formStatus.className='ai-status-line is-error';
+      }
     });
   }
   return { open };
@@ -2948,14 +4338,28 @@ const Shortcuts = (() => {
         if(!DateEngine.isViewingToday()){ Actions.goToday(); return; }
         return;
       }
+      // Modifier 键本身按下时不触发任何自定义快捷键，避免拦截组合键
       if(MODIFIER_KEYS.has(e.key.toLowerCase())) return;
       if(isTypingContext() || Dialog.isOpen() || focusOpen) return;
       const k = e.key.toLowerCase();
       const sc = (State.get().settings.shortcuts || { e:'e', f:'f', n:'n', p:'p' });
-      if(k===sc.e){ e.preventDefault(); Actions.toggleMode(); }
-      else if(k===sc.f){ e.preventDefault(); FocusUI.enter(); }
-      else if(k===sc.n){ e.preventDefault(); Actions.goRelative(1); }
-      else if(k===sc.p){ e.preventDefault(); Actions.goRelative(-1); }
+      // Alt+L 优先判断，避免被重映射的 p 键拦截
+      if(e.altKey && k==='l'){
+        e.preventDefault();
+        // 触发一次带 userInitiated=true 的布局计算
+        const isClassroom = State.get().settings.mode === 'classroom';
+        LayoutEngine.compute(Renderer.els.gridWrap, Renderer.els.grid, Renderer.visibleSubjects().length, {
+          classroom: isClassroom,
+          fallback: isClassroom ? 'scale' : 'scroll',
+          userInitiated: true
+        });
+        // 显示提示（静默，不弹 toast）
+        const hint = document.getElementById('layoutHint');
+        if (hint) {
+          hint.title = '已记忆当前布局偏好';
+          setTimeout(()=>{ hint.title = ''; }, 2000);
+        }
+      }
     });
   }
   function openShortcutsHelp(){
@@ -2972,6 +4376,7 @@ const Shortcuts = (() => {
     </div>`;
     Dialog.open({ title:'快捷键', bodyNode: wrap });
   }
+  function rebind(){ /* 快捷键绑定在 bind() 中动态读取 State，无需重新绑定 */ }
   function openSearch(){
     const wrap = document.createElement('div');
     wrap.innerHTML = `<input class="field__input" id="searchInput" placeholder="搜索历史日期、学科或作业内容…" data-autofocus>
@@ -2990,9 +4395,10 @@ const Shortcuts = (() => {
         Object.keys(day.assignments).forEach(sid=>{
           const rec = day.assignments[sid];
           const name = subjectsById[sid] || '';
-          if(!rec.text) return;
-          if(rec.text.toLowerCase().includes(q.toLowerCase()) || name.includes(q)){
-            matches.push({ key, sid, name, snippet: rec.text.slice(0,60) });
+          const text = subjectItems(rec).map(i=>(i.text||'')).join('\n');
+          if(!text.trim()) return;
+          if(text.toLowerCase().includes(q.toLowerCase()) || name.includes(q)){
+            matches.push({ key, sid, name, snippet: text.slice(0,60) });
           }
         });
       });
@@ -3010,7 +4416,7 @@ const Shortcuts = (() => {
       Dialog.close();
     });
   }
-  return { bind, openShortcutsHelp, rebind:()=>{}, openSearch };
+  return { bind, openShortcutsHelp, openSearch };
 })();
 
 /* ============================== 17. Focus Mode UI ============================== */
@@ -3021,12 +4427,15 @@ const FocusUI = (() => {
     overlay.setAttribute('aria-hidden','false');
     overlay.style.opacity='1';
     FocusTimer.updateUI();
+    // 延迟到下一帧再请求全屏，避免事件竞态
+    setTimeout(()=>document.documentElement.requestFullscreen().catch(()=>{}),50);
   }
   function exit(){
     overlay.hidden = true;
     overlay.setAttribute('aria-hidden','true');
     overlay.style.opacity='';
     document.title = '今课 Nowledge';
+    if(document.fullscreenElement) document.exitFullscreen();
   }
   function bind(){
     document.getElementById('focusEnterBtn').addEventListener('click', enter);
@@ -3042,6 +4451,10 @@ const FocusUI = (() => {
       const b = e.target.closest('button'); if(!b) return;
       if(b.dataset.preset === 'custom'){ openCustomDialog(); }
       else { FocusTimer.setPreset(b.dataset.preset); }
+    });
+    // 专注模式下如果全屏被退出，也关闭专注模式
+    document.addEventListener('fullscreenchange',()=>{
+      if(!overlay.hidden && !document.fullscreenElement) exit();
     });
   }
   function openCustomDialog(){
@@ -3098,7 +4511,7 @@ const ClassroomManager = (() => {
     // 无需再手动在学科设置里逐个隐藏。
     const subs=Renderer.visibleSubjects().filter(s=>{
       const a=day.assignments[s.id];
-      return a && a.text && a.text.trim().length>0;
+      return a && subjectItems(a).some(i=>i.text && i.text.trim().length>0);
     });
     const d=new Date(DateEngine.getViewingKey()+'T12:00:00');
     const dl=Utils.formatDateLine(d);
@@ -3114,7 +4527,7 @@ const ClassroomManager = (() => {
     const note=(day.note||'').trim();
     priorityText.textContent=note||'今天最重要的一件事';
     priority.classList.toggle('is-empty',!note);
-    const done=subs.filter(x=>day.assignments[x.id]?.completed).length;
+    const done=subs.filter(x=>itemsAllDone(subjectItems(day.assignments[x.id]))).length;
     const base = `今日作业 · ${done}/${subs.length} 项完成 · ${subs.length?Math.round(done/subs.length*100):0}%`;
     statusText = base;
     document.getElementById('classroomStatus').textContent = base;
@@ -3127,9 +4540,14 @@ const ClassroomManager = (() => {
     }
     subs.forEach(sub=>{
       const a=day.assignments[sub.id]||{};
+      const items=subjectItems(a);
       const c=document.createElement('article');
-      c.className='classroom-card'; c.setAttribute('role','listitem');
-      c.innerHTML=`<div class="classroom-card__title">${esc(sub.name)}</div><div class="classroom-card__body">${esc(a.text||'暂无作业')}</div><div class="classroom-card__meta">${a.completed?'✓ 已完成':'待完成'}</div>`;
+      c.className='classroom-card'+(itemsAllDone(items)?' is-done':''); c.setAttribute('role','listitem');
+      const bodyHtml = items.length>1
+        ? `<div class="classroom-card__items">`+items.map((it,idx)=>`<div class="classroom-item${it.completed?' is-done':''}"><span class="classroom-item__no">${idx+1}</span><span class="classroom-item__text">${it.text&&it.text.trim()?esc(it.text):'<span class="classroom-item__empty">…</span>'}</span></div>`).join('')+`</div>`
+        : `<div class="classroom-card__body">${esc(a.text||'暂无作业')}</div>`;
+      const doneMark = itemsAllDone(items);
+      c.innerHTML=`<div class="classroom-card__title">${esc(sub.name)}</div>${bodyHtml}<div class="classroom-card__meta">${doneMark?'✓ 已完成':'待完成'}</div>`;
       grid.appendChild(c);
     });
   }
@@ -3137,58 +4555,44 @@ const ClassroomManager = (() => {
   function measure(){
     if(!active||!grid.children.length)return;
     if(grid.classList.contains('is-empty'))return;
-    const box=wrap.getBoundingClientRect();
-    const W=box.width, H=box.height, n=grid.children.length;
-    const maxCols=Math.min(6,n);
-    let best=null;
-    grid.style.visibility='hidden'; grid.style.overflow='visible'; grid.style.transform='none';
-    // 真实 DOM 测量：优先用最大可读字号，其次增加列数，再降低间距。
-    for(let cols=1;cols<=maxCols;cols++){
-      const widthPer=(W-(cols-1)*18)/cols;
-      if(widthPer<125) continue;
-      for(let font=32;font>=12;font-=1){
-        const gap=font>=22?18:font>=17?14:10;
-        const pad=font>=22?10:font>=17?7:5;
-        const line=font>=22?1.38:font>=17?1.32:1.26;
-        grid.style.gridTemplateColumns=`repeat(${cols},minmax(0,1fr))`;
-        grid.style.setProperty('--class-gap',gap+'px');
-        grid.style.setProperty('--class-pad',pad+'px');
-        grid.style.setProperty('--class-body',font+'px');
-        grid.style.setProperty('--class-title',Math.max(14,font+2)+'px');
-        grid.style.setProperty('--class-line',String(line));
-        void grid.offsetHeight;
-        const r=grid.getBoundingClientRect();
-        const height=r.height;
-        const fits=height<=H;
-        const score=(fits?10000000:0)+font*10000-cols*120-height*4;
-        const candidate={cols,font,gap,pad,line,height,score};
-        if(!best||score>best.score)best=candidate;
-      }
-    }
-    if(!best) best={cols:Math.max(1,Math.min(6,n)),font:12,gap:8,pad:4,line:1.2,height:H*1.4,score:0};
-    grid.style.gridTemplateColumns=`repeat(${best.cols},minmax(0,1fr))`;
-    grid.style.setProperty('--class-gap',best.gap+'px');
-    grid.style.setProperty('--class-pad',best.pad+'px');
-    grid.style.setProperty('--class-body',best.font+'px');
-    grid.style.setProperty('--class-title',Math.max(14,best.font+2)+'px');
-    grid.style.setProperty('--class-line',String(best.line));
-    void grid.offsetHeight;
-    const natural=grid.getBoundingClientRect().height;
-    // 最后一道保险：整体缩放，保证“绝不滚动”，而不是把内容藏掉。
-    const scale=Math.min(1, H/Math.max(1,natural));
-    grid.style.transform=`scale(${scale})`;
+    // LayoutEngine: 二分 + 局部微调 + 参数化兜底
+    const layout = LayoutEngine.compute(wrap, grid, grid.children.length, {
+      classroom: true,
+      fallback: 'scale'  // 教室模式永不滚动
+    });
+    // applyStyles 已写入所有 CSS 变量（--class-gap, --class-pad, --class-body,
+    // --class-title, --class-line），无需重复设置
+    grid.style.visibility='';
+    grid.style.overflow='visible';
     grid.classList.remove('is-scrollable');
-    grid.style.visibility=''; grid.style.overflow='visible';
-    const suffix=scale<.999?` · ${best.cols} 列 · 自动缩放 ${Math.round(scale*100)}%`:` · ${best.cols} 列 · 已适配一屏`;
+    // reason 字段含缩放信息（仅 fallback 路径设置），正常路径显示"已适配一屏"
+    // 使用结构化字段 scalePercent 而非字符串切分
+    const suffix = layout.scalePercent !== undefined
+      ? ` · ${layout.cols} 列 · 缩放 ${layout.scalePercent}%`
+      : ` · ${layout.cols} 列 · 已适配一屏`;
     document.getElementById('classroomStatus').textContent=statusText+suffix;
   }
-  function open(){active=true;render();view.hidden=false;view.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';requestAnimationFrame(()=>requestAnimationFrame(measure));}
-  function close(){active=false;view.hidden=true;view.setAttribute('aria-hidden','true');document.body.style.overflow='';Renderer.renderModeUI();}
+
+  function open(){
+    active=true;
+    render();
+    view.hidden=false;
+    view.setAttribute('aria-hidden','false');
+    document.body.style.overflow='hidden';
+    requestAnimationFrame(()=>requestAnimationFrame(measure));
+    // 延迟到下一帧再请求全屏，避免事件竞态
+    setTimeout(()=>document.documentElement.requestFullscreen().catch(()=>{}),50);
+  }
+  function close(){active=false;view.hidden=true;view.setAttribute('aria-hidden','true');document.body.style.overflow='';Renderer.renderModeUI();if(document.fullscreenElement) document.exitFullscreen();}
   function bind(){
     document.getElementById('classroomExitBtn').addEventListener('click',close);
     document.getElementById('classroomThemeBtn').addEventListener('click',()=>{Actions.cycleTheme();render();requestAnimationFrame(measure);});
     window.addEventListener('resize',Utils.debounce(measure,100));
     document.addEventListener('keydown',e=>{if(active&&e.key==='Escape'){e.preventDefault();close();}},true);
+    document.addEventListener('fullscreenchange',()=>{
+      // 只要还在教室模式且全屏被退出，就关闭教室模式
+      if(active&&!document.fullscreenElement) close();
+    });
   }
   return {open,close,bind,measure};
 })();
@@ -3219,6 +4623,7 @@ const ClassroomManager = (() => {
   document.getElementById('modeToggleBtn').addEventListener('click', Actions.toggleMode);
   document.getElementById('themeToggleBtn').addEventListener('click', Actions.cycleTheme);
   document.getElementById('settingsBtn').addEventListener('click', SettingsPanel.open);
+  document.getElementById('shareImgBtn').addEventListener('click', ShareImage.generate);
   document.getElementById('quoteNextBtn').addEventListener('click', Actions.nextQuote);
   document.getElementById('copyYesterdayBtn').addEventListener('click', Actions.copyYesterday);
   document.getElementById('datePrevBtn').addEventListener('click', ()=>Actions.goRelative(-1));
